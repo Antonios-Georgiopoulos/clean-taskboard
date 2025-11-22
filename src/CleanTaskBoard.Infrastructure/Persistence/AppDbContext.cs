@@ -6,9 +6,7 @@ namespace CleanTaskBoard.Infrastructure.Persistence;
 public class AppDbContext : DbContext
 {
     public AppDbContext(DbContextOptions<AppDbContext> options)
-        : base(options)
-    {
-    }
+        : base(options) { }
 
     public DbSet<Board> Boards { get; set; } = default!;
     public DbSet<Column> Columns { get; set; } = default!;
@@ -22,20 +20,17 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Board>(entity =>
         {
             entity.HasKey(b => b.Id);
-            entity.Property(b => b.Name)
-                .IsRequired()
-                .HasMaxLength(200);
+            entity.Property(b => b.Name).IsRequired().HasMaxLength(200);
         });
 
         // Column
         modelBuilder.Entity<Column>(entity =>
         {
             entity.HasKey(c => c.Id);
-            entity.Property(c => c.Name)
-                .IsRequired()
-                .HasMaxLength(200);
+            entity.Property(c => c.Name).IsRequired().HasMaxLength(200);
 
-            entity.HasOne<Board>()
+            entity
+                .HasOne<Board>()
                 .WithMany()
                 .HasForeignKey(c => c.BoardId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -45,11 +40,10 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<TaskItem>(entity =>
         {
             entity.HasKey(t => t.Id);
-            entity.Property(t => t.Title)
-                .IsRequired()
-                .HasMaxLength(300);
+            entity.Property(t => t.Title).IsRequired().HasMaxLength(300);
 
-            entity.HasOne<Column>()
+            entity
+                .HasOne<Column>()
                 .WithMany()
                 .HasForeignKey(t => t.ColumnId)
                 .OnDelete(DeleteBehavior.Cascade);
