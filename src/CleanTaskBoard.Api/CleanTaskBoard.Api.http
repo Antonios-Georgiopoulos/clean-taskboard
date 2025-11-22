@@ -1,0 +1,6 @@
+@CleanTaskBoard.Api_HostAddress = http://localhost:5210
+
+GET {{CleanTaskBoard.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
