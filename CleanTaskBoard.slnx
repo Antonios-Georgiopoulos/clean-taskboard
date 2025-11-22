@@ -1,2 +1,8 @@
 <Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CleanTaskBoard.Api/CleanTaskBoard.Api.csproj" />
+    <Project Path="src/CleanTaskBoard.Application/CleanTaskBoard.Application.csproj" />
+    <Project Path="src/CleanTaskBoard.Domain/CleanTaskBoard.Domain.csproj" />
+    <Project Path="src/CleanTaskBoard.Infrastructure/CleanTaskBoard.Infrastructure.csproj" />
+  </Folder>
 </Solution>

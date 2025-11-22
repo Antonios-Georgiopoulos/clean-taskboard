@@ -1,3 +1,5 @@
+using CleanTaskBoard.Domain.Entities;
+
 namespace CleanTaskBoard.Application.Interfaces.Repositories;
 
 public interface IBoardRepository
