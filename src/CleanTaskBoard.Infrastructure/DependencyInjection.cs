@@ -20,6 +20,7 @@ namespace CleanTaskBoard.Infrastructure
 
             services.AddScoped<IBoardRepository, BoardRepository>();
             services.AddScoped<IColumnRepository, ColumnRepository>();
+            services.AddScoped<ITaskItemRepository, TaskItemRepository>();
 
             return services;
         }

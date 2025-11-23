@@ -1,11 +1,16 @@
 using CleanTaskBoard.Api.Requests;
+using CleanTaskBoard.Api.Requests;
+using CleanTaskBoard.Api.Responses;
 using CleanTaskBoard.Api.Responses;
 using CleanTaskBoard.Application;
 using CleanTaskBoard.Application.Commands.Boards;
 using CleanTaskBoard.Application.Commands.Columns;
+using CleanTaskBoard.Application.Commands.Tasks;
 using CleanTaskBoard.Application.Queries.Boards;
 using CleanTaskBoard.Application.Queries.Columns;
+using CleanTaskBoard.Application.Queries.Tasks;
 using CleanTaskBoard.Infrastructure;
+using MediatR;
 using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -91,6 +96,78 @@ app.MapDelete(
         }
     )
     .WithName("DeleteColumn");
+
+// TASKS
+
+app.MapPost(
+        "/columns/{columnId:guid}/tasks",
+        async (Guid columnId, CreateTaskRequest request, IMediator mediator) =>
+        {
+            var command = new CreateTaskCommand(
+                columnId,
+                request.Title,
+                request.Description,
+                request.DueDate,
+                request.Priority
+            );
+
+            var id = await mediator.Send(command);
+
+            return Results.Ok(new CreateTaskResponse(id));
+        }
+    )
+    .WithName("CreateTask");
+
+app.MapGet(
+        "/columns/{columnId:guid}/tasks",
+        async (Guid columnId, IMediator mediator) =>
+        {
+            var tasks = await mediator.Send(new GetTasksByColumnIdQuery(columnId));
+            return Results.Ok(tasks);
+        }
+    )
+    .WithName("GetTasksByColumnId");
+
+app.MapGet(
+        "/tasks/{id:guid}",
+        async (Guid id, IMediator mediator) =>
+        {
+            var task = await mediator.Send(new GetTaskByIdQuery(id));
+
+            return task is null ? Results.NotFound() : Results.Ok(task);
+        }
+    )
+    .WithName("GetTaskById");
+
+app.MapPut(
+        "/tasks/{id:guid}",
+        async (Guid id, UpdateTaskRequest request, IMediator mediator) =>
+        {
+            var command = new UpdateTaskDetailsCommand(
+                id,
+                request.Title,
+                request.Description,
+                request.DueDate,
+                request.Priority
+            );
+
+            var success = await mediator.Send(command);
+
+            return success ? Results.NoContent() : Results.NotFound();
+        }
+    )
+    .WithName("UpdateTask");
+
+app.MapDelete(
+        "/tasks/{id:guid}",
+        async (Guid id, IMediator mediator) =>
+        {
+            var success = await mediator.Send(new DeleteTaskCommand(id));
+
+            return success ? Results.NoContent() : Results.NotFound();
+        }
+    )
+    .WithName("DeleteTask");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
