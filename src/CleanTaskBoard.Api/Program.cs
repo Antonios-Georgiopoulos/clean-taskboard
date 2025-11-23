@@ -1,6 +1,4 @@
 using CleanTaskBoard.Api.Requests;
-using CleanTaskBoard.Api.Requests;
-using CleanTaskBoard.Api.Responses;
 using CleanTaskBoard.Api.Responses;
 using CleanTaskBoard.Application;
 using CleanTaskBoard.Application.Commands.Boards;
@@ -10,7 +8,6 @@ using CleanTaskBoard.Application.Queries.Boards;
 using CleanTaskBoard.Application.Queries.Columns;
 using CleanTaskBoard.Application.Queries.Tasks;
 using CleanTaskBoard.Infrastructure;
-using MediatR;
 using MediatR;
 
 var builder = WebApplication.CreateBuilder(args);
