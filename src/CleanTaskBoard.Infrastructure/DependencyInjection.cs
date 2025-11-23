@@ -5,24 +5,23 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace CleanTaskBoard.Infrastructure;
-
-public static class DependencyInjection
+namespace CleanTaskBoard.Infrastructure
 {
-    public static IServiceCollection AddInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration
-    )
+    public static class DependencyInjection
     {
-        var connectionString = configuration.GetConnectionString("DefaultConnection");
-
-        services.AddDbContext<AppDbContext>(options =>
+        public static IServiceCollection AddInfrastructure(
+            this IServiceCollection services,
+            IConfiguration configuration
+        )
         {
-            options.UseNpgsql(connectionString);
-        });
+            services.AddDbContext<AppDbContext>(options =>
+                options.UseInMemoryDatabase("CleanTaskBoardDb")
+            );
 
-        services.AddScoped<IBoardRepository, BoardRepository>();
+            services.AddScoped<IBoardRepository, BoardRepository>();
+            services.AddScoped<IColumnRepository, ColumnRepository>();
 
-        return services;
+            return services;
+        }
     }
 }
