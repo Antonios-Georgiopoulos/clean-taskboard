@@ -1,0 +1,18 @@
+﻿version: '3.8'
+
+services:
+  postgres:
+    image: postgres:16
+    container_name: clean_taskboard_db
+    restart: always
+    environment:
+      POSTGRES_USER: taskuser
+      POSTGRES_PASSWORD: taskpassword
+      POSTGRES_DB: cleantaskboard
+    ports:
+      - "5433:5432"   # host 5433 -> container 5432 (για να μην τρακάρει με το Windows PG)
+    volumes:
+      - db_data:/var/lib/postgresql/data
+
+volumes:
+  db_data:

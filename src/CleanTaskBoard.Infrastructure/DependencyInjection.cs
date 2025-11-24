@@ -15,7 +15,7 @@ namespace CleanTaskBoard.Infrastructure
         )
         {
             services.AddDbContext<AppDbContext>(options =>
-                options.UseInMemoryDatabase("CleanTaskBoardDb")
+                options.UseNpgsql(configuration.GetConnectionString("DefaultConnection"))
             );
 
             services.AddScoped<IBoardRepository, BoardRepository>();
