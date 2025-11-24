@@ -3,9 +3,11 @@ using CleanTaskBoard.Api.Responses;
 using CleanTaskBoard.Application;
 using CleanTaskBoard.Application.Commands.Boards;
 using CleanTaskBoard.Application.Commands.Columns;
+using CleanTaskBoard.Application.Commands.Subtasks;
 using CleanTaskBoard.Application.Commands.Tasks;
 using CleanTaskBoard.Application.Queries.Boards;
 using CleanTaskBoard.Application.Queries.Columns;
+using CleanTaskBoard.Application.Queries.Subtasks;
 using CleanTaskBoard.Application.Queries.Tasks;
 using CleanTaskBoard.Infrastructure;
 using MediatR;
@@ -165,6 +167,110 @@ app.MapDelete(
         }
     )
     .WithName("DeleteTask");
+
+app.MapPatch(
+        "/tasks/{id:guid}/move",
+        async (Guid id, MoveTaskRequest request, IMediator mediator) =>
+        {
+            var result = await mediator.Send(
+                new MoveTaskCommand(id, request.TargetColumnId, request.TargetPosition)
+            );
+
+            return result ? Results.NoContent() : Results.NotFound();
+        }
+    )
+    .WithName("MoveTask");
+
+app.MapPatch(
+        "/tasks/{id:guid}/complete",
+        async (Guid id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new CompleteTaskCommand(id));
+
+            return result ? Results.NoContent() : Results.NotFound();
+        }
+    )
+    .WithName("CompleteTask");
+
+app.MapPatch(
+        "/tasks/{id:guid}/reorder",
+        async (Guid id, ReorderTaskRequest request, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new ReorderTaskCommand(id, request.TargetPosition));
+
+            return result ? Results.NoContent() : Results.NotFound();
+        }
+    )
+    .WithName("ReorderTask");
+
+// SUBTASKS
+
+app.MapPost(
+        "/tasks/{taskId:guid}/subtasks",
+        async (Guid taskId, CreateSubtaskRequest request, IMediator mediator) =>
+        {
+            var id = await mediator.Send(
+                new CreateSubtaskCommand(taskId, request.Title, request.Order)
+            );
+
+            return Results.Ok(new CreateSubtaskResponse(id));
+        }
+    )
+    .WithName("CreateSubtask");
+
+app.MapGet(
+        "/tasks/{taskId:guid}/subtasks",
+        async (Guid taskId, IMediator mediator) =>
+        {
+            var subtasks = await mediator.Send(new GetSubtasksByTaskIdQuery(taskId));
+            return Results.Ok(subtasks);
+        }
+    )
+    .WithName("GetSubtasksByTaskId");
+
+app.MapGet(
+        "/subtasks/{id:guid}",
+        async (Guid id, IMediator mediator) =>
+        {
+            var subtask = await mediator.Send(new GetSubtaskByIdQuery(id));
+
+            return subtask is null ? Results.NotFound() : Results.Ok(subtask);
+        }
+    )
+    .WithName("GetSubtaskById");
+
+app.MapPatch(
+        "/subtasks/{id:guid}/complete",
+        async (Guid id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new CompleteSubtaskCommand(id));
+
+            return result ? Results.NoContent() : Results.NotFound();
+        }
+    )
+    .WithName("CompleteSubtask");
+
+app.MapPatch(
+        "/subtasks/{id:guid}/reorder",
+        async (Guid id, ReorderSubtaskRequest request, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new ReorderSubtaskCommand(id, request.TargetPosition));
+
+            return result ? Results.NoContent() : Results.NotFound();
+        }
+    )
+    .WithName("ReorderSubtask");
+
+app.MapDelete(
+        "/subtasks/{id:guid}",
+        async (Guid id, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new DeleteSubtaskCommand(id));
+
+            return result ? Results.NoContent() : Results.NotFound();
+        }
+    )
+    .WithName("DeleteSubtask");
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

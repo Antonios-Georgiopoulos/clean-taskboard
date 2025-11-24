@@ -11,6 +11,7 @@ public class AppDbContext : DbContext
     public DbSet<Board> Boards { get; set; } = default!;
     public DbSet<Column> Columns { get; set; } = default!;
     public DbSet<TaskItem> TaskItems { get; set; } = default!;
+    public DbSet<Subtask> Subtasks => Set<Subtask>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

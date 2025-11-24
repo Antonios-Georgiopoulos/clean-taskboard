@@ -21,6 +21,7 @@ namespace CleanTaskBoard.Infrastructure
             services.AddScoped<IBoardRepository, BoardRepository>();
             services.AddScoped<IColumnRepository, ColumnRepository>();
             services.AddScoped<ITaskItemRepository, TaskItemRepository>();
+            services.AddScoped<ISubtaskRepository, SubtaskRepository>();
 
             return services;
         }

@@ -1,7 +1,5 @@
 using CleanTaskBoard.Domain.Enums;
 
-namespace CleanTaskBoard.Domain.Entities;
-
 public class TaskItem
 {
     public Guid Id { get; set; }
@@ -12,4 +10,5 @@ public class TaskItem
     public DateTime? DueDate { get; set; }
     public TaskPriority Priority { get; set; }
     public bool IsCompleted { get; set; }
+    public int Order { get; set; }
 }
