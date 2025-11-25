@@ -1,6 +1,8 @@
+using CleanTaskBoard.Application.Auth;
 using CleanTaskBoard.Application.Interfaces.Repositories;
 using CleanTaskBoard.Infrastructure.Persistence;
 using CleanTaskBoard.Infrastructure.Repositories;
+using CleanTaskBoard.Infrastructure.Security;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,6 +24,12 @@ namespace CleanTaskBoard.Infrastructure
             services.AddScoped<IColumnRepository, ColumnRepository>();
             services.AddScoped<ITaskItemRepository, TaskItemRepository>();
             services.AddScoped<ISubtaskRepository, SubtaskRepository>();
+
+            services.AddScoped<IUserRepository, UserRepository>();
+
+            services.Configure<JwtOptions>(configuration.GetSection("Jwt"));
+            services.AddScoped<IPasswordHasher, PasswordHasher>();
+            services.AddScoped<IJwtTokenGenerator, JwtTokenGenerator>();
 
             return services;
         }

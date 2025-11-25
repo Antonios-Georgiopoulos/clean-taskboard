@@ -1,4 +1,6 @@
 using CleanTaskBoard.Domain.Entities;
+using CleanTaskBoard.Domain.Entities.Boards;
+using CleanTaskBoard.Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanTaskBoard.Infrastructure.Persistence;
@@ -12,6 +14,7 @@ public class AppDbContext : DbContext
     public DbSet<Column> Columns { get; set; } = default!;
     public DbSet<TaskItem> TaskItems { get; set; } = default!;
     public DbSet<Subtask> Subtasks => Set<Subtask>();
+    public DbSet<User> Users { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

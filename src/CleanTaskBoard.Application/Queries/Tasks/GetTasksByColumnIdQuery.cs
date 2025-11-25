@@ -1,5 +1,4 @@
-﻿using CleanTaskBoard.Domain.Entities;
-using MediatR;
+﻿using MediatR;
 
 namespace CleanTaskBoard.Application.Queries.Tasks;
 

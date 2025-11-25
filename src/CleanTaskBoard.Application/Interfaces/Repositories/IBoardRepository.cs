@@ -1,4 +1,4 @@
-using CleanTaskBoard.Domain.Entities;
+using CleanTaskBoard.Domain.Entities.Boards;
 
 namespace CleanTaskBoard.Application.Interfaces.Repositories;
 

@@ -1,6 +1,9 @@
+using System.Text;
 using CleanTaskBoard.Api.Requests;
+using CleanTaskBoard.Api.Requests.Auth;
 using CleanTaskBoard.Api.Responses;
 using CleanTaskBoard.Application;
+using CleanTaskBoard.Application.Commands.Auth;
 using CleanTaskBoard.Application.Commands.Boards;
 using CleanTaskBoard.Application.Commands.Columns;
 using CleanTaskBoard.Application.Commands.Subtasks;
@@ -11,6 +14,8 @@ using CleanTaskBoard.Application.Queries.Subtasks;
 using CleanTaskBoard.Application.Queries.Tasks;
 using CleanTaskBoard.Infrastructure;
 using MediatR;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +25,28 @@ builder.Services.AddInfrastructure(builder.Configuration);
 
 // OpenAPI / Swagger
 builder.Services.AddOpenApi();
+
+// JWT Auth
+var jwtSection = builder.Configuration.GetSection("Jwt");
+var jwtSecret = jwtSection.GetValue<string>("Secret");
+
+builder
+    .Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = jwtSection.GetValue<string>("Issuer"),
+            ValidAudience = jwtSection.GetValue<string>("Audience"),
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret!)),
+            ClockSkew = TimeSpan.Zero,
+        };
+    });
+
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -272,6 +299,36 @@ app.MapDelete(
     )
     .WithName("DeleteSubtask");
 
+// AUTH
+
+app.MapPost(
+        "/auth/register",
+        async (RegisterRequest request, IMediator mediator) =>
+        {
+            var result = await mediator.Send(
+                new RegisterUserCommand(request.Username, request.Email, request.Password)
+            );
+
+            return Results.Ok(
+                new AuthResponse(result.UserId, result.Username, result.Email, result.Token)
+            );
+        }
+    )
+    .WithName("Register");
+
+app.MapPost(
+        "/auth/login",
+        async (LoginRequest request, IMediator mediator) =>
+        {
+            var result = await mediator.Send(new LoginCommand(request.Email, request.Password));
+
+            return Results.Ok(
+                new AuthResponse(result.UserId, result.Username, result.Email, result.Token)
+            );
+        }
+    )
+    .WithName("Login");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -279,5 +336,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.Run();

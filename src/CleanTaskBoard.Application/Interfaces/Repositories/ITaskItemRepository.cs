@@ -1,6 +1,4 @@
-﻿using CleanTaskBoard.Domain.Entities;
-
-namespace CleanTaskBoard.Application.Interfaces.Repositories;
+﻿namespace CleanTaskBoard.Application.Interfaces.Repositories;
 
 public interface ITaskItemRepository
 {

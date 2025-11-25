@@ -1,4 +1,4 @@
-namespace CleanTaskBoard.Domain.Entities;
+namespace CleanTaskBoard.Domain.Entities.Boards;
 
 public class Board
 {
