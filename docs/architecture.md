@@ -1,4 +1,4 @@
-# Architecture Overview
+# Architecture Overview 
 
 This document describes the Clean Architecture structure of CleanTaskBoard.
 
@@ -9,7 +9,7 @@ flowchart LR
     C --> D[API Layer]
 ```
 
-- **Domain**: Entities, enums, core logic
-- **Application**: CQRS, MediatR handlers, interfaces
-- **Infrastructure**: EF Core, PostgreSQL, repositories
-- **API**: Minimal API endpoints, DI wiring
+- **Domain**: Entities, enums, core logic, `User` aggregate for authentication.
+- **Application**: CQRS, MediatR handlers, interfaces, authentication commands (`RegisterUser`, `Login`).
+- **Infrastructure**: EF Core, PostgreSQL, repositories, security services (`PasswordHasher`, `JwtTokenGenerator`).
+- **API**: Minimal API endpoints, DI wiring, OpenAPI, JWT Authentication & Authorization middleware.

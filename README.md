@@ -18,10 +18,18 @@ It demonstrates real enterprise engineering practices:
 - Dockerized development environment
 - Full Kanban feature set (Boards, Columns, Tasks, Subtasks)
 - Task movement, reordering, completion logic
+- **JWT-based authentication (Users, Register/Login, secure boards)**
 
 ---
 
 ## Features
+
+### ✔ Authentication & Users
+- User registration (`/auth/register`)
+- User login (`/auth/login`)
+- Secure JWT token generation
+- Password hashing (PBKDF2-based)
+- Ready to secure boards/tasks per authenticated user
 
 ### ✔ Boards
 - Create board  
@@ -46,6 +54,67 @@ It demonstrates real enterprise engineering practices:
 
 ---
 
+## Authentication
+
+### Register
+
+**Endpoint:** `POST /auth/register`  
+
+**Request body:**
+```json
+{
+  "username": "testuser",
+  "email": "test@example.com",
+  "password": "P@ssw0rd!"
+}
+```
+
+**Response:**
+```json
+{
+  "userId": "GUID",
+  "username": "testuser",
+  "email": "test@example.com",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Login
+
+**Endpoint:** `POST /auth/login`  
+
+**Request body:**
+```json
+{
+  "email": "test@example.com",
+  "password": "P@ssw0rd!"
+}
+```
+
+**Response:**
+```json
+{
+  "userId": "GUID",
+  "username": "testuser",
+  "email": "test@example.com",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Using the JWT token
+
+When accessing protected endpoints (e.g. boards, columns, tasks, subtasks), send the token in the HTTP header:
+
+```http
+Authorization: Bearer {{token}}
+```
+
+In Postman, you can set a collection variable `token` and use `Bearer {{token}}` across requests.
+
+> Note: Currently, authentication is wired and functional. Board ownership and per-user data scoping will be introduced in the next milestone.
+
+---
+
 ## Architecture
 
 ### Clean Architecture Layers
@@ -53,8 +122,8 @@ It demonstrates real enterprise engineering practices:
 ```
 Domain → Enterprise business rules  
 Application → Use-cases (CQRS / MediatR)  
-Infrastructure → EF Core & PostgreSQL  
-API → Minimal API endpoints  
+Infrastructure → EF Core & PostgreSQL, Repositories, Security (PasswordHasher, JwtTokenGenerator)  
+API → Minimal API endpoints, DI wiring, JWT Authentication & Authorization  
 ```
 
 See `docs/architecture.md` for full diagrams.
@@ -92,6 +161,11 @@ https://localhost:5001
 ## Postman Collection
 A full Postman collection is available under `/docs/postman/CleanTaskBoard.postman_collection.json`.
 
+The collection includes:
+- Auth endpoints (`/auth/register`, `/auth/login`)
+- Boards / Columns / Tasks / Subtasks
+- Support for a `token` collection variable used in the `Authorization` header.
+
 ---
 
 ## Project Structure
@@ -122,8 +196,8 @@ CleanTaskBoard/
 - PostgreSQL  
 - Docker  
 - MediatR  
-- FluentValidation  
 - Minimal API  
+- JWT Authentication  
 
 ---
 
