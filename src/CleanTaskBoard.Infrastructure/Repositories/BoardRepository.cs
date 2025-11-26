@@ -21,15 +21,28 @@ public class BoardRepository : IBoardRepository
         return board.Id;
     }
 
-    public async Task<List<Board>> GetAllAsync(CancellationToken cancellationToken = default)
-    {
-        return await _context.Boards.AsNoTracking().ToListAsync(cancellationToken);
-    }
-
-    public async Task<Board?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
+    public async Task<List<Board>> GetByOwnerAsync(
+        Guid ownerUserId,
+        CancellationToken cancellationToken = default
+    )
     {
         return await _context
             .Boards.AsNoTracking()
-            .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
+            .Where(b => b.OwnerUserId == ownerUserId)
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<Board?> GetByIdAsync(
+        Guid id,
+        Guid ownerUserId,
+        CancellationToken cancellationToken = default
+    )
+    {
+        return await _context
+            .Boards.AsNoTracking()
+            .FirstOrDefaultAsync(
+                b => b.Id == id && b.OwnerUserId == ownerUserId,
+                cancellationToken
+            );
     }
 }

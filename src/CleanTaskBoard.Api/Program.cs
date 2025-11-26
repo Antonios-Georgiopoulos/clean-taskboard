@@ -1,4 +1,6 @@
+using System.Security.Claims;
 using System.Text;
+using CleanTaskBoard.Api;
 using CleanTaskBoard.Api.Requests;
 using CleanTaskBoard.Api.Requests.Auth;
 using CleanTaskBoard.Api.Responses;
@@ -51,44 +53,42 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 app.MapPost(
-    "/boards",
-    async (CreateBoardRequest request, IMediator mediator) =>
-    {
-        var id = await mediator.Send(new CreateBoardCommand(request.Name));
-        return Results.Ok(new CreateBoardResponse(id));
-    }
-);
-
-app.MapPost(
-        "/boards/{boardId:guid}/columns",
-        async (Guid boardId, CreateColumnRequest request, IMediator mediator) =>
+        "/boards",
+        async (CreateBoardRequest request, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var command = new CreateColumnCommand(boardId, request.Name, request.Order);
-            var id = await mediator.Send(command);
+            var userId = user.GetUserId();
 
-            return Results.Ok(new CreateColumnResponse(id));
+            var id = await mediator.Send(new CreateBoardCommand(userId, request.Name));
+
+            return Results.Ok(new CreateBoardResponse(id));
         }
     )
-    .WithName("CreateColumn");
+    .RequireAuthorization();
 
 app.MapGet(
-    "/boards",
-    async (IMediator mediator) =>
-    {
-        var boards = await mediator.Send(new GetBoardsQuery());
-        return Results.Ok(boards);
-    }
-);
+        "/boards",
+        async (IMediator mediator, ClaimsPrincipal user) =>
+        {
+            var userId = user.GetUserId();
+
+            var boards = await mediator.Send(new GetBoardsQuery(userId));
+            return Results.Ok(boards);
+        }
+    )
+    .RequireAuthorization();
 
 app.MapGet(
         "/boards/{id:guid}",
-        async (Guid id, IMediator mediator) =>
+        async (Guid id, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var board = await mediator.Send(new GetBoardByIdQuery(id));
+            var userId = user.GetUserId();
+
+            var board = await mediator.Send(new GetBoardByIdQuery(id, userId));
 
             return board is null ? Results.NotFound() : Results.Ok(board);
         }
     )
+    .RequireAuthorization()
     .WithName("GetBoardById");
 
 app.MapGet(

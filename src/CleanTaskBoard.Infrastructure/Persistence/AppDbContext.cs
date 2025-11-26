@@ -25,6 +25,7 @@ public class AppDbContext : DbContext
         {
             entity.HasKey(b => b.Id);
             entity.Property(b => b.Name).IsRequired().HasMaxLength(200);
+            entity.Property(b => b.OwnerUserId).IsRequired();
         });
 
         // Column

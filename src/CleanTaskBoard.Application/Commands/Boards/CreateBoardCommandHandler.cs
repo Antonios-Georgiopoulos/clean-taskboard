@@ -15,7 +15,12 @@ public class CreateBoardCommandHandler : IRequestHandler<CreateBoardCommand, Gui
 
     public async Task<Guid> Handle(CreateBoardCommand request, CancellationToken cancellationToken)
     {
-        var board = new Board { Id = Guid.NewGuid(), Name = request.Name };
+        var board = new Board
+        {
+            Id = Guid.NewGuid(),
+            Name = request.Name,
+            OwnerUserId = request.OwnerUserId,
+        };
 
         return await _boardRepository.AddAsync(board, cancellationToken);
     }

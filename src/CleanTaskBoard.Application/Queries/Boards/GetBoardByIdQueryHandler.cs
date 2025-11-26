@@ -15,6 +15,10 @@ public class GetBoardByIdQueryHandler : IRequestHandler<GetBoardByIdQuery, Board
 
     public async Task<Board?> Handle(GetBoardByIdQuery request, CancellationToken cancellationToken)
     {
-        return await _boardRepository.GetByIdAsync(request.Id, cancellationToken);
+        return await _boardRepository.GetByIdAsync(
+            request.Id,
+            request.OwnerUserId,
+            cancellationToken
+        );
     }
 }
