@@ -1,4 +1,5 @@
-﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+﻿using CleanTaskBoard.Application.Common.Exceptions;
+using CleanTaskBoard.Application.Interfaces.Repositories;
 using CleanTaskBoard.Domain.Entities;
 using MediatR;
 
@@ -20,17 +21,9 @@ public class CreateSubtaskCommandHandler : IRequestHandler<CreateSubtaskCommand,
         CancellationToken cancellationToken
     )
     {
-        // Task πρέπει να ανήκει στον χρήστη
-        var task = await _taskRepo.GetByIdAsync(
-            request.TaskItemId,
-            request.OwnerUserId,
-            cancellationToken
-        );
-        if (task is null)
-        {
-            throw new InvalidOperationException("Task not found or access denied.");
-        }
-
+        _ =
+            await _taskRepo.GetByIdAsync(request.TaskItemId, request.OwnerUserId, cancellationToken)
+            ?? throw new NotFoundException("TaskItem", request.TaskItemId);
         var subtask = new Subtask
         {
             Id = Guid.NewGuid(),

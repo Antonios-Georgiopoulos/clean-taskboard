@@ -1,4 +1,5 @@
-﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+﻿using CleanTaskBoard.Application.Common.Exceptions;
+using CleanTaskBoard.Application.Interfaces.Repositories;
 using CleanTaskBoard.Domain.Entities;
 using MediatR;
 
@@ -20,13 +21,12 @@ public class CreateColumnCommandHandler : IRequestHandler<CreateColumnCommand, G
 
     public async Task<Guid> Handle(CreateColumnCommand request, CancellationToken cancellationToken)
     {
-        // Εξασφάλιση ότι το board ανήκει στον χρήστη
         _ =
             await _boardRepository.GetByIdAsync(
                 request.BoardId,
                 request.OwnerUserId,
                 cancellationToken
-            ) ?? throw new InvalidOperationException("Board not found or access denied.");
+            ) ?? throw new NotFoundException("Board", request.BoardId);
 
         var column = new Column
         {

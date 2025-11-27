@@ -27,7 +27,6 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
         CancellationToken cancellationToken
     )
     {
-        // Απλό validation (αργότερα FluentValidation)
         var existingByEmail = await _userRepository.GetByEmailAsync(
             request.Email,
             cancellationToken

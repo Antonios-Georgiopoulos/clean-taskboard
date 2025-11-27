@@ -1,4 +1,5 @@
-﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+﻿using CleanTaskBoard.Application.Common.Exceptions;
+using CleanTaskBoard.Application.Interfaces.Repositories;
 using CleanTaskBoard.Domain.Entities;
 using CleanTaskBoard.Domain.Enums;
 using MediatR;
@@ -18,10 +19,9 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, Guid>
 
     public async Task<Guid> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
     {
-        // Εξασφάλιση ότι η στήλη ανήκει σε board του χρήστη
         _ =
             await _columnRepo.GetByIdAsync(request.ColumnId, request.OwnerUserId, cancellationToken)
-            ?? throw new InvalidOperationException("Column not found or access denied.");
+            ?? throw new NotFoundException("Column", request.ColumnId);
         var task = new TaskItem
         {
             Id = Guid.NewGuid(),

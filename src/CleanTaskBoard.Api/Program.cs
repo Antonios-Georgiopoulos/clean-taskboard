@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using System.Text;
 using CleanTaskBoard.Api;
+using CleanTaskBoard.Api.Middleware;
 using CleanTaskBoard.Api.Requests;
 using CleanTaskBoard.Api.Requests.Auth;
 using CleanTaskBoard.Api.Responses;
@@ -51,6 +52,7 @@ builder
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
+app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapPost(
         "/boards",

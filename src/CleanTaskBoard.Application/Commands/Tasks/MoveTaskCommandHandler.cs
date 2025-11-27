@@ -16,7 +16,6 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, bool>
 
     public async Task<bool> Handle(MoveTaskCommand request, CancellationToken cancellationToken)
     {
-        // 1) Task ανήκει στον χρήστη;
         var task = await _taskRepo.GetByIdAsync(
             request.TaskId,
             request.OwnerUserId,
@@ -25,7 +24,6 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, bool>
         if (task is null)
             return false;
 
-        // 2) Target column ανήκει στον χρήστη;
         var targetColumn = await _columnRepo.GetByIdAsync(
             request.TargetColumnId,
             request.OwnerUserId,
@@ -34,7 +32,6 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, bool>
         if (targetColumn is null)
             return false;
 
-        // 3) Tasks στην target column αλλά μόνο του user
         var tasksInColumn = await _taskRepo.GetByColumnIdAsync(
             request.TargetColumnId,
             request.OwnerUserId,
