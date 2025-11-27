@@ -1,4 +1,5 @@
 ﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+using CleanTaskBoard.Domain.Entities;
 using CleanTaskBoard.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -22,22 +23,33 @@ public class TaskItemRepository : ITaskItemRepository
 
     public async Task<TaskItem?> GetByIdAsync(
         Guid id,
+        Guid ownerUserId,
         CancellationToken cancellationToken = default
     )
     {
         return await _context
             .TaskItems.AsNoTracking()
-            .FirstOrDefaultAsync(t => t.Id == id, cancellationToken);
+            .Where(t => t.Id == id)
+            .Join(_context.Columns, t => t.ColumnId, c => c.Id, (t, c) => new { t, c })
+            .Join(_context.Boards, tc => tc.c.BoardId, b => b.Id, (tc, b) => new { tc.t, b })
+            .Where(tcb => tcb.b.OwnerUserId == ownerUserId)
+            .Select(x => x.t)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<List<TaskItem>> GetByColumnIdAsync(
         Guid columnId,
+        Guid ownerUserId,
         CancellationToken cancellationToken = default
     )
     {
         return await _context
             .TaskItems.AsNoTracking()
             .Where(t => t.ColumnId == columnId)
+            .Join(_context.Columns, t => t.ColumnId, c => c.Id, (t, c) => new { t, c })
+            .Join(_context.Boards, tc => tc.c.BoardId, b => b.Id, (tc, b) => new { tc.t, b })
+            .Where(tcb => tcb.b.OwnerUserId == ownerUserId)
+            .Select(x => x.t)
             .OrderBy(t => t.CreatedAt)
             .ToListAsync(cancellationToken);
     }

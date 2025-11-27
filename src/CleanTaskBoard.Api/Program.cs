@@ -91,45 +91,85 @@ app.MapGet(
     .RequireAuthorization()
     .WithName("GetBoardById");
 
+// COLUMNS
+
+app.MapPost(
+        "/boards/{boardId:guid}/columns",
+        async (
+            Guid boardId,
+            CreateColumnRequest request,
+            IMediator mediator,
+            ClaimsPrincipal user
+        ) =>
+        {
+            var userId = user.GetUserId();
+
+            var command = new CreateColumnCommand(userId, boardId, request.Name, request.Order);
+
+            var id = await mediator.Send(command);
+
+            return Results.Ok(new CreateColumnResponse(id));
+        }
+    )
+    .RequireAuthorization()
+    .WithName("CreateColumn");
+
 app.MapGet(
         "/boards/{boardId:guid}/columns",
-        async (Guid boardId, IMediator mediator) =>
+        async (Guid boardId, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var columns = await mediator.Send(new GetColumnsByBoardIdQuery(boardId));
+            var userId = user.GetUserId();
+
+            var columns = await mediator.Send(new GetColumnsByBoardIdQuery(boardId, userId));
             return Results.Ok(columns);
         }
     )
+    .RequireAuthorization()
     .WithName("GetColumnsByBoardId");
 
 app.MapGet(
         "/columns/{id:guid}",
-        async (Guid id, IMediator mediator) =>
+        async (Guid id, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var column = await mediator.Send(new GetColumnByIdQuery(id));
+            var userId = user.GetUserId();
+
+            var column = await mediator.Send(new GetColumnByIdQuery(id, userId));
 
             return column is null ? Results.NotFound() : Results.Ok(column);
         }
     )
+    .RequireAuthorization()
     .WithName("GetColumnById");
 
 app.MapDelete(
         "/columns/{id:guid}",
-        async (Guid id, IMediator mediator) =>
+        async (Guid id, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var result = await mediator.Send(new DeleteColumnCommand(id));
+            var userId = user.GetUserId();
+
+            var result = await mediator.Send(new DeleteColumnCommand(id, userId));
 
             return result ? Results.NoContent() : Results.NotFound();
         }
     )
+    .RequireAuthorization()
     .WithName("DeleteColumn");
 
 // TASKS
 
 app.MapPost(
         "/columns/{columnId:guid}/tasks",
-        async (Guid columnId, CreateTaskRequest request, IMediator mediator) =>
+        async (
+            Guid columnId,
+            CreateTaskRequest request,
+            IMediator mediator,
+            ClaimsPrincipal user
+        ) =>
         {
+            var userId = user.GetUserId();
+
             var command = new CreateTaskCommand(
+                userId,
                 columnId,
                 request.Title,
                 request.Description,
@@ -142,35 +182,45 @@ app.MapPost(
             return Results.Ok(new CreateTaskResponse(id));
         }
     )
+    .RequireAuthorization()
     .WithName("CreateTask");
 
 app.MapGet(
         "/columns/{columnId:guid}/tasks",
-        async (Guid columnId, IMediator mediator) =>
+        async (Guid columnId, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var tasks = await mediator.Send(new GetTasksByColumnIdQuery(columnId));
+            var userId = user.GetUserId();
+
+            var tasks = await mediator.Send(new GetTasksByColumnIdQuery(columnId, userId));
             return Results.Ok(tasks);
         }
     )
+    .RequireAuthorization()
     .WithName("GetTasksByColumnId");
 
 app.MapGet(
         "/tasks/{id:guid}",
-        async (Guid id, IMediator mediator) =>
+        async (Guid id, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var task = await mediator.Send(new GetTaskByIdQuery(id));
+            var userId = user.GetUserId();
+
+            var task = await mediator.Send(new GetTaskByIdQuery(id, userId));
 
             return task is null ? Results.NotFound() : Results.Ok(task);
         }
     )
+    .RequireAuthorization()
     .WithName("GetTaskById");
 
 app.MapPut(
         "/tasks/{id:guid}",
-        async (Guid id, UpdateTaskRequest request, IMediator mediator) =>
+        async (Guid id, UpdateTaskRequest request, IMediator mediator, ClaimsPrincipal user) =>
         {
+            var userId = user.GetUserId();
+
             var command = new UpdateTaskDetailsCommand(
                 id,
+                userId,
                 request.Title,
                 request.Description,
                 request.DueDate,
@@ -182,121 +232,161 @@ app.MapPut(
             return success ? Results.NoContent() : Results.NotFound();
         }
     )
+    .RequireAuthorization()
     .WithName("UpdateTask");
 
 app.MapDelete(
         "/tasks/{id:guid}",
-        async (Guid id, IMediator mediator) =>
+        async (Guid id, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var success = await mediator.Send(new DeleteTaskCommand(id));
+            var userId = user.GetUserId();
+
+            var success = await mediator.Send(new DeleteTaskCommand(id, userId));
 
             return success ? Results.NoContent() : Results.NotFound();
         }
     )
+    .RequireAuthorization()
     .WithName("DeleteTask");
 
 app.MapPatch(
         "/tasks/{id:guid}/move",
-        async (Guid id, MoveTaskRequest request, IMediator mediator) =>
+        async (Guid id, MoveTaskRequest request, IMediator mediator, ClaimsPrincipal user) =>
         {
+            var userId = user.GetUserId();
+
             var result = await mediator.Send(
-                new MoveTaskCommand(id, request.TargetColumnId, request.TargetPosition)
+                new MoveTaskCommand(id, userId, request.TargetColumnId, request.TargetPosition)
             );
 
             return result ? Results.NoContent() : Results.NotFound();
         }
     )
+    .RequireAuthorization()
     .WithName("MoveTask");
 
 app.MapPatch(
         "/tasks/{id:guid}/complete",
-        async (Guid id, IMediator mediator) =>
+        async (Guid id, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var result = await mediator.Send(new CompleteTaskCommand(id));
+            var userId = user.GetUserId();
+
+            var result = await mediator.Send(new CompleteTaskCommand(id, userId));
 
             return result ? Results.NoContent() : Results.NotFound();
         }
     )
+    .RequireAuthorization()
     .WithName("CompleteTask");
 
 app.MapPatch(
         "/tasks/{id:guid}/reorder",
-        async (Guid id, ReorderTaskRequest request, IMediator mediator) =>
+        async (Guid id, ReorderTaskRequest request, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var result = await mediator.Send(new ReorderTaskCommand(id, request.TargetPosition));
+            var userId = user.GetUserId();
+
+            var result = await mediator.Send(
+                new ReorderTaskCommand(id, userId, request.TargetPosition)
+            );
 
             return result ? Results.NoContent() : Results.NotFound();
         }
     )
+    .RequireAuthorization()
     .WithName("ReorderTask");
 
 // SUBTASKS
 
 app.MapPost(
         "/tasks/{taskId:guid}/subtasks",
-        async (Guid taskId, CreateSubtaskRequest request, IMediator mediator) =>
+        async (
+            Guid taskId,
+            CreateSubtaskRequest request,
+            IMediator mediator,
+            ClaimsPrincipal user
+        ) =>
         {
+            var userId = user.GetUserId();
+
             var id = await mediator.Send(
-                new CreateSubtaskCommand(taskId, request.Title, request.Order)
+                new CreateSubtaskCommand(userId, taskId, request.Title, request.Order)
             );
 
             return Results.Ok(new CreateSubtaskResponse(id));
         }
     )
+    .RequireAuthorization()
     .WithName("CreateSubtask");
 
 app.MapGet(
         "/tasks/{taskId:guid}/subtasks",
-        async (Guid taskId, IMediator mediator) =>
+        async (Guid taskId, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var subtasks = await mediator.Send(new GetSubtasksByTaskIdQuery(taskId));
+            var userId = user.GetUserId();
+
+            var subtasks = await mediator.Send(new GetSubtasksByTaskIdQuery(taskId, userId));
             return Results.Ok(subtasks);
         }
     )
+    .RequireAuthorization()
     .WithName("GetSubtasksByTaskId");
 
 app.MapGet(
         "/subtasks/{id:guid}",
-        async (Guid id, IMediator mediator) =>
+        async (Guid id, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var subtask = await mediator.Send(new GetSubtaskByIdQuery(id));
+            var userId = user.GetUserId();
+
+            var subtask = await mediator.Send(new GetSubtaskByIdQuery(id, userId));
 
             return subtask is null ? Results.NotFound() : Results.Ok(subtask);
         }
     )
+    .RequireAuthorization()
     .WithName("GetSubtaskById");
 
 app.MapPatch(
         "/subtasks/{id:guid}/complete",
-        async (Guid id, IMediator mediator) =>
+        async (Guid id, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var result = await mediator.Send(new CompleteSubtaskCommand(id));
+            var userId = user.GetUserId();
+
+            var result = await mediator.Send(new CompleteSubtaskCommand(id, userId));
 
             return result ? Results.NoContent() : Results.NotFound();
         }
     )
+    .RequireAuthorization()
     .WithName("CompleteSubtask");
 
 app.MapPatch(
         "/subtasks/{id:guid}/reorder",
-        async (Guid id, ReorderSubtaskRequest request, IMediator mediator) =>
+        async (Guid id, ReorderSubtaskRequest request, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var result = await mediator.Send(new ReorderSubtaskCommand(id, request.TargetPosition));
+            var userId = user.GetUserId();
+
+            var result = await mediator.Send(
+                new ReorderSubtaskCommand(id, userId, request.TargetPosition)
+            );
 
             return result ? Results.NoContent() : Results.NotFound();
         }
     )
+    .RequireAuthorization()
     .WithName("ReorderSubtask");
 
 app.MapDelete(
         "/subtasks/{id:guid}",
-        async (Guid id, IMediator mediator) =>
+        async (Guid id, IMediator mediator, ClaimsPrincipal user) =>
         {
-            var result = await mediator.Send(new DeleteSubtaskCommand(id));
+            var userId = user.GetUserId();
+
+            var result = await mediator.Send(new DeleteSubtaskCommand(id, userId));
 
             return result ? Results.NoContent() : Results.NotFound();
         }
     )
+    .RequireAuthorization()
     .WithName("DeleteSubtask");
 
 // AUTH

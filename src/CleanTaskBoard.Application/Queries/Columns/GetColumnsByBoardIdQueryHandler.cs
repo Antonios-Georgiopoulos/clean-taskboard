@@ -19,6 +19,10 @@ public class GetColumnsByBoardIdQueryHandler
         CancellationToken cancellationToken
     )
     {
-        return await _columnRepository.GetByBoardIdAsync(request.BoardId, cancellationToken);
+        return await _columnRepository.GetByBoardIdAsync(
+            request.BoardId,
+            request.OwnerUserId,
+            cancellationToken
+        );
     }
 }

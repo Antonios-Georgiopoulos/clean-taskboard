@@ -1,4 +1,5 @@
 ﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+using CleanTaskBoard.Domain.Entities;
 using MediatR;
 
 namespace CleanTaskBoard.Application.Queries.Tasks;
@@ -17,6 +18,6 @@ public class GetTaskByIdQueryHandler : IRequestHandler<GetTaskByIdQuery, TaskIte
         CancellationToken cancellationToken
     )
     {
-        return await _taskRepo.GetByIdAsync(request.Id, cancellationToken);
+        return await _taskRepo.GetByIdAsync(request.Id, request.OwnerUserId, cancellationToken);
     }
 }

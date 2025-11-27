@@ -3,4 +3,4 @@ using MediatR;
 
 namespace CleanTaskBoard.Application.Queries.Subtasks;
 
-public record GetSubtaskByIdQuery(Guid Id) : IRequest<Subtask?>;
+public record GetSubtaskByIdQuery(Guid Id, Guid OwnerUserId) : IRequest<Subtask?>;

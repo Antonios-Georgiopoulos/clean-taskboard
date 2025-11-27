@@ -18,6 +18,6 @@ public class GetSubtaskByIdQueryHandler : IRequestHandler<GetSubtaskByIdQuery, S
         CancellationToken cancellationToken
     )
     {
-        return await _subtaskRepo.GetByIdAsync(request.Id, cancellationToken);
+        return await _subtaskRepo.GetByIdAsync(request.Id, request.OwnerUserId, cancellationToken);
     }
 }

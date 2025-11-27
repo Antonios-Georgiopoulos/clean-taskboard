@@ -2,4 +2,5 @@
 
 namespace CleanTaskBoard.Application.Commands.Tasks;
 
-public record ReorderTaskCommand(Guid TaskId, int TargetPosition) : IRequest<bool>;
+public record ReorderTaskCommand(Guid TaskId, Guid OwnerUserId, int TargetPosition)
+    : IRequest<bool>;

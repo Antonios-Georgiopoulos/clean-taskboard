@@ -17,7 +17,11 @@ public class CompleteSubtaskCommandHandler : IRequestHandler<CompleteSubtaskComm
         CancellationToken cancellationToken
     )
     {
-        var subtask = await _subtaskRepo.GetByIdAsync(request.SubtaskId, cancellationToken);
+        var subtask = await _subtaskRepo.GetByIdAsync(
+            request.SubtaskId,
+            request.OwnerUserId,
+            cancellationToken
+        );
         if (subtask is null)
             return false;
 

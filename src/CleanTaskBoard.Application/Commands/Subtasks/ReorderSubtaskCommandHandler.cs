@@ -17,13 +17,22 @@ public class ReorderSubtaskCommandHandler : IRequestHandler<ReorderSubtaskComman
         CancellationToken cancellationToken
     )
     {
-        var subtask = await _subtaskRepo.GetByIdAsync(request.SubtaskId, cancellationToken);
+        var subtask = await _subtaskRepo.GetByIdAsync(
+            request.SubtaskId,
+            request.OwnerUserId,
+            cancellationToken
+        );
         if (subtask is null)
             return false;
 
         var taskId = subtask.TaskItemId;
 
-        var subtasks = await _subtaskRepo.GetByTaskIdAsync(taskId, cancellationToken);
+        var subtasks = await _subtaskRepo.GetByTaskIdAsync(
+            taskId,
+            request.OwnerUserId,
+            cancellationToken
+        );
+
         subtasks.RemoveAll(s => s.Id == subtask.Id);
 
         var pos = request.TargetPosition;

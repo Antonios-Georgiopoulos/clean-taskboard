@@ -18,6 +18,10 @@ public class GetColumnByIdQueryHandler : IRequestHandler<GetColumnByIdQuery, Col
         CancellationToken cancellationToken
     )
     {
-        return await _columnRepository.GetByIdAsync(request.Id, cancellationToken);
+        return await _columnRepository.GetByIdAsync(
+            request.Id,
+            request.OwnerUserId,
+            cancellationToken
+        );
     }
 }

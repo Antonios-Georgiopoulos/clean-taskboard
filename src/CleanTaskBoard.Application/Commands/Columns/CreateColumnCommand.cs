@@ -2,4 +2,5 @@
 
 namespace CleanTaskBoard.Application.Commands.Columns;
 
-public record CreateColumnCommand(Guid BoardId, string Name, int Order) : IRequest<Guid>;
+public record CreateColumnCommand(Guid OwnerUserId, Guid BoardId, string Name, int Order)
+    : IRequest<Guid>;

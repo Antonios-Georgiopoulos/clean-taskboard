@@ -18,7 +18,7 @@ public class UpdateTaskDetailsCommandHandler : IRequestHandler<UpdateTaskDetails
         CancellationToken cancellationToken
     )
     {
-        var task = await _taskRepo.GetByIdAsync(request.Id, cancellationToken);
+        var task = await _taskRepo.GetByIdAsync(request.Id, request.OwnerUserId, cancellationToken);
         if (task is null)
             return false;
 

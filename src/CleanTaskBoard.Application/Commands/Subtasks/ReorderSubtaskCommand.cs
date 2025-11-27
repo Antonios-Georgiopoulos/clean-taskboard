@@ -2,4 +2,5 @@
 
 namespace CleanTaskBoard.Application.Commands.Subtasks;
 
-public record ReorderSubtaskCommand(Guid SubtaskId, int TargetPosition) : IRequest<bool>;
+public record ReorderSubtaskCommand(Guid SubtaskId, Guid OwnerUserId, int TargetPosition)
+    : IRequest<bool>;

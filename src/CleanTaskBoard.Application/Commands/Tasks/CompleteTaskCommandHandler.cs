@@ -14,11 +14,15 @@ public class CompleteTaskCommandHandler : IRequestHandler<CompleteTaskCommand, b
 
     public async Task<bool> Handle(CompleteTaskCommand request, CancellationToken cancellationToken)
     {
-        var task = await _taskRepo.GetByIdAsync(request.TaskId, cancellationToken);
+        var task = await _taskRepo.GetByIdAsync(
+            request.TaskId,
+            request.OwnerUserId,
+            cancellationToken
+        );
+
         if (task is null)
             return false;
 
-        // Toggle logic
         task.IsCompleted = !task.IsCompleted;
 
         await _taskRepo.UpdateAsync(task, cancellationToken);

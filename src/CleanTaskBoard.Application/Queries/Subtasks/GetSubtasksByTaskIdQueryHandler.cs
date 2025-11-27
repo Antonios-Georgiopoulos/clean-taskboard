@@ -19,6 +19,10 @@ public class GetSubtasksByTaskIdQueryHandler
         CancellationToken cancellationToken
     )
     {
-        return await _subtaskRepo.GetByTaskIdAsync(request.TaskItemId, cancellationToken);
+        return await _subtaskRepo.GetByTaskIdAsync(
+            request.TaskItemId,
+            request.OwnerUserId,
+            cancellationToken
+        );
     }
 }

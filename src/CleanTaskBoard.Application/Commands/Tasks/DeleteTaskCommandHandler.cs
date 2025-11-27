@@ -14,7 +14,8 @@ public class DeleteTaskCommandHandler : IRequestHandler<DeleteTaskCommand, bool>
 
     public async Task<bool> Handle(DeleteTaskCommand request, CancellationToken cancellationToken)
     {
-        var task = await _taskRepo.GetByIdAsync(request.Id, cancellationToken);
+        var task = await _taskRepo.GetByIdAsync(request.Id, request.OwnerUserId, cancellationToken);
+
         if (task is null)
             return false;
 

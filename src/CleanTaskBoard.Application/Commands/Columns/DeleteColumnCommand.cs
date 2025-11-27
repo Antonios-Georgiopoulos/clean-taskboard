@@ -2,4 +2,4 @@
 
 namespace CleanTaskBoard.Application.Commands.Columns;
 
-public record DeleteColumnCommand(Guid Id) : IRequest<bool>;
+public record DeleteColumnCommand(Guid Id, Guid OwnerUserId) : IRequest<bool>;

@@ -6,38 +6,51 @@ namespace CleanTaskBoard.Application.Commands.Tasks;
 public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, bool>
 {
     private readonly ITaskItemRepository _taskRepo;
+    private readonly IColumnRepository _columnRepo;
 
-    public MoveTaskCommandHandler(ITaskItemRepository taskRepo)
+    public MoveTaskCommandHandler(ITaskItemRepository taskRepo, IColumnRepository columnRepo)
     {
         _taskRepo = taskRepo;
+        _columnRepo = columnRepo;
     }
 
     public async Task<bool> Handle(MoveTaskCommand request, CancellationToken cancellationToken)
     {
-        // 1) Load the task
-        var task = await _taskRepo.GetByIdAsync(request.TaskId, cancellationToken);
+        // 1) Task ανήκει στον χρήστη;
+        var task = await _taskRepo.GetByIdAsync(
+            request.TaskId,
+            request.OwnerUserId,
+            cancellationToken
+        );
         if (task is null)
             return false;
 
-        // 2) Load all tasks from the target column
+        // 2) Target column ανήκει στον χρήστη;
+        var targetColumn = await _columnRepo.GetByIdAsync(
+            request.TargetColumnId,
+            request.OwnerUserId,
+            cancellationToken
+        );
+        if (targetColumn is null)
+            return false;
+
+        // 3) Tasks στην target column αλλά μόνο του user
         var tasksInColumn = await _taskRepo.GetByColumnIdAsync(
             request.TargetColumnId,
+            request.OwnerUserId,
             cancellationToken
         );
 
-        // 3) Remove the task if it already exists in this column (moving inside same column)
         tasksInColumn.RemoveAll(t => t.Id == task.Id);
 
-        // 4) Insert task at the correct position
-        if (request.TargetPosition < 0)
-            request = request with { TargetPosition = 0 };
+        var pos = request.TargetPosition;
+        if (pos < 0)
+            pos = 0;
+        if (pos > tasksInColumn.Count)
+            pos = tasksInColumn.Count;
 
-        if (request.TargetPosition > tasksInColumn.Count)
-            request = request with { TargetPosition = tasksInColumn.Count };
+        tasksInColumn.Insert(pos, task);
 
-        tasksInColumn.Insert(request.TargetPosition, task);
-
-        // 5) Reorder (stable ordering: 0,1,2...)
         for (int i = 0; i < tasksInColumn.Count; i++)
         {
             tasksInColumn[i].ColumnId = request.TargetColumnId;

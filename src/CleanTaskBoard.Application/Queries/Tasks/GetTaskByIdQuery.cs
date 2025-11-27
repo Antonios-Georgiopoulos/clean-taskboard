@@ -1,5 +1,6 @@
-﻿using MediatR;
+﻿using CleanTaskBoard.Domain.Entities;
+using MediatR;
 
 namespace CleanTaskBoard.Application.Queries.Tasks;
 
-public record GetTaskByIdQuery(Guid Id) : IRequest<TaskItem?>;
+public record GetTaskByIdQuery(Guid Id, Guid OwnerUserId) : IRequest<TaskItem?>;

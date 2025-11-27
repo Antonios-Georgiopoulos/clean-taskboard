@@ -1,4 +1,5 @@
 ﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+using CleanTaskBoard.Domain.Entities;
 using MediatR;
 
 namespace CleanTaskBoard.Application.Queries.Tasks;
@@ -18,6 +19,10 @@ public class GetTasksByColumnIdQueryHandler
         CancellationToken cancellationToken
     )
     {
-        return await _taskRepo.GetByColumnIdAsync(request.ColumnId, cancellationToken);
+        return await _taskRepo.GetByColumnIdAsync(
+            request.ColumnId,
+            request.OwnerUserId,
+            cancellationToken
+        );
     }
 }

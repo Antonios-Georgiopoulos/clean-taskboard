@@ -14,13 +14,16 @@ public class DeleteColumnCommandHandler : IRequestHandler<DeleteColumnCommand, b
 
     public async Task<bool> Handle(DeleteColumnCommand request, CancellationToken cancellationToken)
     {
-        var column = await _columnRepository.GetByIdAsync(request.Id, cancellationToken);
+        var column = await _columnRepository.GetByIdAsync(
+            request.Id,
+            request.OwnerUserId,
+            cancellationToken
+        );
 
         if (column is null)
             return false;
 
         await _columnRepository.DeleteAsync(column, cancellationToken);
-
         return true;
     }
 }
