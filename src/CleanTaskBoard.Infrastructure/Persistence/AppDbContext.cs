@@ -15,6 +15,7 @@ public class AppDbContext : DbContext
     public DbSet<TaskItem> TaskItems { get; set; } = default!;
     public DbSet<Subtask> Subtasks => Set<Subtask>();
     public DbSet<User> Users { get; set; } = default!;
+    public DbSet<BoardMembership> BoardMemberships { get; set; } = default!;
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -51,6 +52,26 @@ public class AppDbContext : DbContext
                 .HasOne<Column>()
                 .WithMany()
                 .HasForeignKey(t => t.ColumnId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // BoardMembership
+        modelBuilder.Entity<BoardMembership>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+
+            entity.HasIndex(m => new { m.BoardId, m.UserId }).IsUnique();
+
+            entity
+                .HasOne<Board>()
+                .WithMany()
+                .HasForeignKey(m => m.BoardId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity
+                .HasOne<User>()
+                .WithMany()
+                .HasForeignKey(m => m.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }
