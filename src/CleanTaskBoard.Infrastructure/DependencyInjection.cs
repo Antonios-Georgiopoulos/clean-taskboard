@@ -24,7 +24,7 @@ namespace CleanTaskBoard.Infrastructure
             services.AddScoped<IColumnRepository, ColumnRepository>();
             services.AddScoped<ITaskItemRepository, TaskItemRepository>();
             services.AddScoped<ISubtaskRepository, SubtaskRepository>();
-
+            services.AddScoped<IBoardMembershipRepository, BoardMembershipRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
 
             services.Configure<JwtOptions>(configuration.GetSection("Jwt"));

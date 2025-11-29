@@ -1,6 +1,5 @@
 ﻿using CleanTaskBoard.Application.Common.Exceptions;
 using CleanTaskBoard.Application.Interfaces.Repositories;
-using CleanTaskBoard.Domain.Entities;
 using CleanTaskBoard.Domain.Enums;
 using MediatR;
 

@@ -2,9 +2,15 @@ using System.Security.Claims;
 using System.Text;
 using CleanTaskBoard.Api;
 using CleanTaskBoard.Api.Middleware;
-using CleanTaskBoard.Api.Requests;
 using CleanTaskBoard.Api.Requests.Auth;
-using CleanTaskBoard.Api.Responses;
+using CleanTaskBoard.Api.Requests.Boards;
+using CleanTaskBoard.Api.Requests.Column;
+using CleanTaskBoard.Api.Requests.Subtask;
+using CleanTaskBoard.Api.Requests.Task;
+using CleanTaskBoard.Api.Responses.Boards;
+using CleanTaskBoard.Api.Responses.Column;
+using CleanTaskBoard.Api.Responses.Subtask;
+using CleanTaskBoard.Api.Responses.Task;
 using CleanTaskBoard.Application;
 using CleanTaskBoard.Application.Commands.Auth;
 using CleanTaskBoard.Application.Commands.Boards;
@@ -15,6 +21,7 @@ using CleanTaskBoard.Application.Queries.Boards;
 using CleanTaskBoard.Application.Queries.Columns;
 using CleanTaskBoard.Application.Queries.Subtasks;
 using CleanTaskBoard.Application.Queries.Tasks;
+using CleanTaskBoard.Domain.Entities.Boards;
 using CleanTaskBoard.Infrastructure;
 using MediatR;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -54,6 +61,7 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
+// BOARDS
 app.MapPost(
         "/boards",
         async (CreateBoardRequest request, IMediator mediator, ClaimsPrincipal user) =>
@@ -92,6 +100,99 @@ app.MapGet(
     )
     .RequireAuthorization()
     .WithName("GetBoardById");
+
+// BOARD MEMBERSHIPS
+app.MapGet(
+        "/boards/{boardId:guid}/members",
+        async (Guid boardId, IMediator mediator, ClaimsPrincipal user) =>
+        {
+            var currentUserId = user.GetUserId();
+
+            var members = await mediator.Send(new GetBoardMembersQuery(currentUserId, boardId));
+
+            var response = members
+                .Select(m => new BoardMemberResponse
+                {
+                    UserId = m.UserId,
+                    Email = m.Email,
+                    Role = m.Role,
+                })
+                .ToList();
+
+            return Results.Ok(response);
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetBoardMembers");
+
+app.MapPost(
+        "/boards/{boardId:guid}/members",
+        async (
+            Guid boardId,
+            AddBoardMemberRequest request,
+            IMediator mediator,
+            ClaimsPrincipal user
+        ) =>
+        {
+            var currentUserId = user.GetUserId();
+
+            if (!Enum.TryParse<BoardRole>(request.Role, ignoreCase: true, out var role))
+            {
+                return Results.BadRequest("Invalid role. Allowed: Owner, Member, Viewer");
+            }
+
+            var success = await mediator.Send(
+                new AddBoardMemberCommand(currentUserId, boardId, request.MemberUserId, role)
+            );
+
+            return success ? Results.NoContent() : Results.BadRequest();
+        }
+    )
+    .RequireAuthorization()
+    .WithName("AddBoardMember");
+
+app.MapPatch(
+        "/boards/{boardId:guid}/members/{memberUserId:guid}",
+        async (
+            Guid boardId,
+            Guid memberUserId,
+            UpdateBoardMemberRoleRequest request,
+            IMediator mediator,
+            ClaimsPrincipal user
+        ) =>
+        {
+            var currentUserId = user.GetUserId();
+
+            if (!Enum.TryParse<BoardRole>(request.Role, ignoreCase: true, out var role))
+            {
+                return Results.BadRequest("Invalid role. Allowed: Owner, Member, Viewer");
+            }
+
+            var success = await mediator.Send(
+                new UpdateBoardMemberRoleCommand(currentUserId, boardId, memberUserId, role)
+            );
+
+            return success ? Results.NoContent() : Results.NotFound();
+        }
+    )
+    .RequireAuthorization()
+    .WithName("UpdateBoardMemberRole");
+
+app.MapDelete(
+        "/boards/{boardId:guid}/members/{memberUserId:guid}",
+        async (Guid boardId, Guid memberUserId, IMediator mediator, ClaimsPrincipal user) =>
+        {
+            var currentUserId = user.GetUserId();
+
+            var success = await mediator.Send(
+                new RemoveBoardMemberCommand(currentUserId, boardId, memberUserId)
+            );
+
+            return success ? Results.NoContent() : Results.NotFound();
+        }
+    )
+    .RequireAuthorization()
+    .WithName("RemoveBoardMember");
 
 // COLUMNS
 

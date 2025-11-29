@@ -7,10 +7,15 @@ namespace CleanTaskBoard.Application.Commands.Boards;
 public class CreateBoardCommandHandler : IRequestHandler<CreateBoardCommand, Guid>
 {
     private readonly IBoardRepository _boardRepository;
+    private readonly IBoardMembershipRepository _membershipRepository;
 
-    public CreateBoardCommandHandler(IBoardRepository boardRepository)
+    public CreateBoardCommandHandler(
+        IBoardRepository boardRepository,
+        IBoardMembershipRepository membershipRepository
+    )
     {
         _boardRepository = boardRepository;
+        _membershipRepository = membershipRepository;
     }
 
     public async Task<Guid> Handle(CreateBoardCommand request, CancellationToken cancellationToken)
@@ -22,6 +27,18 @@ public class CreateBoardCommandHandler : IRequestHandler<CreateBoardCommand, Gui
             OwnerUserId = request.OwnerUserId,
         };
 
-        return await _boardRepository.AddAsync(board, cancellationToken);
+        var boardId = await _boardRepository.AddAsync(board, cancellationToken);
+
+        var membership = new BoardMembership
+        {
+            Id = Guid.NewGuid(),
+            BoardId = boardId,
+            UserId = request.OwnerUserId,
+            Role = BoardRole.Owner,
+        };
+
+        await _membershipRepository.AddAsync(membership, cancellationToken);
+
+        return boardId;
     }
 }

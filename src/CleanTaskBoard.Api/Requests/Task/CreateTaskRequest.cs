@@ -1,4 +1,4 @@
-﻿namespace CleanTaskBoard.Api.Requests;
+﻿namespace CleanTaskBoard.Api.Requests.Task;
 
 public record CreateTaskRequest(
     string Title,
