@@ -2,4 +2,4 @@
 
 namespace CleanTaskBoard.Application.Commands.Subtasks;
 
-public record DeleteSubtaskCommand(Guid SubtaskId, Guid OwnerUserId) : IRequest<bool>;
+public record DeleteSubtaskCommand(Guid CurrentUserId, Guid SubtaskId) : IRequest<bool>;

@@ -2,4 +2,4 @@
 
 namespace CleanTaskBoard.Application.Commands.Tasks;
 
-public record DeleteTaskCommand(Guid Id, Guid OwnerUserId) : IRequest<bool>;
+public record DeleteTaskCommand(Guid CurrentUserId, Guid Id) : IRequest<bool>;

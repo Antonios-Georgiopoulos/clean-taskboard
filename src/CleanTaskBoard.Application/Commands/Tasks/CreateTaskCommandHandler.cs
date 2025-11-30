@@ -1,5 +1,5 @@
-﻿using CleanTaskBoard.Application.Common.Exceptions;
-using CleanTaskBoard.Application.Interfaces.Repositories;
+﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+using CleanTaskBoard.Application.Interfaces.Services;
 using CleanTaskBoard.Domain.Enums;
 using MediatR;
 
@@ -9,18 +9,39 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, Guid>
 {
     private readonly ITaskItemRepository _taskRepo;
     private readonly IColumnRepository _columnRepo;
+    private readonly IBoardAccessService _boardAccessService;
 
-    public CreateTaskCommandHandler(ITaskItemRepository taskRepo, IColumnRepository columnRepo)
+    public CreateTaskCommandHandler(
+        ITaskItemRepository taskRepo,
+        IColumnRepository columnRepo,
+        IBoardAccessService boardAccessService
+    )
     {
         _taskRepo = taskRepo;
         _columnRepo = columnRepo;
+        _boardAccessService = boardAccessService;
     }
 
     public async Task<Guid> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
     {
-        _ =
-            await _columnRepo.GetByIdAsync(request.ColumnId, request.OwnerUserId, cancellationToken)
-            ?? throw new NotFoundException("Column", request.ColumnId);
+        // Βρίσκουμε την column για να μάθουμε το boardId
+        var column = await _columnRepo.GetByIdAsync(request.ColumnId, cancellationToken);
+
+        if (column is null)
+        {
+            // Global middleware -> 404
+            throw new CleanTaskBoard.Application.Common.Exceptions.NotFoundException(
+                "Column",
+                request.ColumnId
+            );
+        }
+
+        await _boardAccessService.EnsureCanEditTask(
+            taskId: Guid.Empty, // εδώ θα ήταν καλύτερα ένα EnsureCanEditTasksForColumn(column.Id,...)
+            userId: request.CurrentUserId,
+            cancellationToken
+        );
+
         var task = new TaskItem
         {
             Id = Guid.NewGuid(),

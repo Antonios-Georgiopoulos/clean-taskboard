@@ -1,4 +1,5 @@
 ﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+using CleanTaskBoard.Application.Interfaces.Services;
 using MediatR;
 
 namespace CleanTaskBoard.Application.Queries.Tasks;
@@ -7,10 +8,15 @@ public class GetTasksByColumnIdQueryHandler
     : IRequestHandler<GetTasksByColumnIdQuery, List<TaskItem>>
 {
     private readonly ITaskItemRepository _taskRepo;
+    private readonly IBoardAccessService _boardAccessService;
 
-    public GetTasksByColumnIdQueryHandler(ITaskItemRepository taskRepo)
+    public GetTasksByColumnIdQueryHandler(
+        ITaskItemRepository taskRepo,
+        IBoardAccessService boardAccessService
+    )
     {
         _taskRepo = taskRepo;
+        _boardAccessService = boardAccessService;
     }
 
     public async Task<List<TaskItem>> Handle(
@@ -18,10 +24,12 @@ public class GetTasksByColumnIdQueryHandler
         CancellationToken cancellationToken
     )
     {
-        return await _taskRepo.GetByColumnIdAsync(
+        await _boardAccessService.EnsureCanReadColumn(
             request.ColumnId,
-            request.OwnerUserId,
+            request.CurrentUserId,
             cancellationToken
         );
+
+        return await _taskRepo.GetByColumnIdAsync(request.ColumnId, cancellationToken);
     }
 }

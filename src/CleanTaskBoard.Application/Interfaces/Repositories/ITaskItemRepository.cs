@@ -4,15 +4,10 @@ public interface ITaskItemRepository
 {
     Task<Guid> AddAsync(TaskItem task, CancellationToken cancellationToken = default);
 
-    Task<TaskItem?> GetByIdAsync(
-        Guid id,
-        Guid ownerUserId,
-        CancellationToken cancellationToken = default
-    );
+    Task<TaskItem?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<List<TaskItem>> GetByColumnIdAsync(
         Guid columnId,
-        Guid ownerUserId,
         CancellationToken cancellationToken = default
     );
 

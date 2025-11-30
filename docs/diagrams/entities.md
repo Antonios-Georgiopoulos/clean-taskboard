@@ -4,18 +4,29 @@
 classDiagram
     class User {
         Guid Id
-        string Username
         string Email
         string PasswordHash
-        string PasswordSalt
-        DateTime CreatedAtUtc
-        DateTime LastLoginAtUtc
+        DateTime CreatedAt
     }
 
     class Board {
         Guid Id
         string Name
-        %% OwnerUserId will be introduced in the next milestone
+        Guid OwnerUserId
+    }
+
+    class BoardMembership {
+        Guid Id
+        Guid BoardId
+        Guid UserId
+        BoardRole Role
+    }
+
+    class BoardRole {
+        <<enumeration>>
+        Owner
+        Member
+        Viewer
     }
 
     class Column {
@@ -37,6 +48,14 @@ classDiagram
         int Order
     }
 
+    class TaskPriority {
+        <<enumeration>>
+        Low
+        Medium
+        High
+        Critical
+    }
+
     class Subtask {
         Guid Id
         Guid TaskItemId
@@ -45,9 +64,11 @@ classDiagram
         int Order
     }
 
+    User "1" --> "many" BoardMembership : memberships
+    Board "1" --> "many" BoardMembership : memberships
+    BoardMembership --> BoardRole
+
     Board --> Column
     Column --> TaskItem
     TaskItem --> Subtask
 ```
-
-> Note: The relationship between `User` and `Board` (ownership / membership) will be modelled in a separate step, as part of the multi-user and collaboration features.

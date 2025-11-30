@@ -3,8 +3,8 @@
 namespace CleanTaskBoard.Application.Commands.Tasks;
 
 public record MoveTaskCommand(
+    Guid CurrentUserId,
     Guid TaskId,
-    Guid OwnerUserId,
     Guid TargetColumnId,
     int TargetPosition
 ) : IRequest<bool>;

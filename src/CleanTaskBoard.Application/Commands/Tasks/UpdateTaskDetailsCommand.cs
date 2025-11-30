@@ -3,8 +3,8 @@
 namespace CleanTaskBoard.Application.Commands.Tasks;
 
 public record UpdateTaskDetailsCommand(
+    Guid CurrentUserId,
     Guid Id,
-    Guid OwnerUserId,
     string Title,
     string? Description,
     DateTime? DueDate,

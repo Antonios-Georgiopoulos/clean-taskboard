@@ -1,4 +1,6 @@
-﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+﻿using CleanTaskBoard.Application.Common.Exceptions;
+using CleanTaskBoard.Application.Interfaces.Repositories;
+using CleanTaskBoard.Application.Interfaces.Services;
 using MediatR;
 
 namespace CleanTaskBoard.Application.Commands.Tasks;
@@ -6,31 +8,38 @@ namespace CleanTaskBoard.Application.Commands.Tasks;
 public class ReorderTaskCommandHandler : IRequestHandler<ReorderTaskCommand, bool>
 {
     private readonly ITaskItemRepository _taskRepo;
+    private readonly IBoardAccessService _boardAccessService;
 
-    public ReorderTaskCommandHandler(ITaskItemRepository taskRepo)
+    public ReorderTaskCommandHandler(
+        ITaskItemRepository taskRepo,
+        IBoardAccessService boardAccessService
+    )
     {
         _taskRepo = taskRepo;
+        _boardAccessService = boardAccessService;
     }
 
     public async Task<bool> Handle(ReorderTaskCommand request, CancellationToken cancellationToken)
     {
-        var task = await _taskRepo.GetByIdAsync(
+        await _boardAccessService.EnsureCanEditTask(
             request.TaskId,
-            request.OwnerUserId,
+            request.CurrentUserId,
             cancellationToken
         );
+
+        var task = await _taskRepo.GetByIdAsync(request.TaskId, cancellationToken);
         if (task is null)
+            throw new NotFoundException("TaskItem", request.TaskId);
+
+        var tasks = await _taskRepo.GetByColumnIdAsync(task.ColumnId, cancellationToken);
+
+        tasks = tasks.OrderBy(t => t.Order).ToList();
+
+        var moving = tasks.FirstOrDefault(t => t.Id == request.TaskId);
+        if (moving is null)
             return false;
 
-        var columnId = task.ColumnId;
-
-        var tasks = await _taskRepo.GetByColumnIdAsync(
-            columnId,
-            request.OwnerUserId,
-            cancellationToken
-        );
-
-        tasks.RemoveAll(t => t.Id == task.Id);
+        tasks.Remove(moving);
 
         var pos = request.TargetPosition;
         if (pos < 0)
@@ -38,7 +47,7 @@ public class ReorderTaskCommandHandler : IRequestHandler<ReorderTaskCommand, boo
         if (pos > tasks.Count)
             pos = tasks.Count;
 
-        tasks.Insert(pos, task);
+        tasks.Insert(pos, moving);
 
         for (int i = 0; i < tasks.Count; i++)
         {

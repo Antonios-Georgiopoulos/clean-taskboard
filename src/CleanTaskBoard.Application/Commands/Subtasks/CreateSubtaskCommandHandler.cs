@@ -1,5 +1,6 @@
 ﻿using CleanTaskBoard.Application.Common.Exceptions;
 using CleanTaskBoard.Application.Interfaces.Repositories;
+using CleanTaskBoard.Application.Interfaces.Services;
 using CleanTaskBoard.Domain.Entities;
 using MediatR;
 
@@ -9,11 +10,17 @@ public class CreateSubtaskCommandHandler : IRequestHandler<CreateSubtaskCommand,
 {
     private readonly ISubtaskRepository _subtaskRepo;
     private readonly ITaskItemRepository _taskRepo;
+    private readonly IBoardAccessService _boardAccessService;
 
-    public CreateSubtaskCommandHandler(ISubtaskRepository subtaskRepo, ITaskItemRepository taskRepo)
+    public CreateSubtaskCommandHandler(
+        ISubtaskRepository subtaskRepo,
+        ITaskItemRepository taskRepo,
+        IBoardAccessService boardAccessService
+    )
     {
         _subtaskRepo = subtaskRepo;
         _taskRepo = taskRepo;
+        _boardAccessService = boardAccessService;
     }
 
     public async Task<Guid> Handle(
@@ -21,9 +28,19 @@ public class CreateSubtaskCommandHandler : IRequestHandler<CreateSubtaskCommand,
         CancellationToken cancellationToken
     )
     {
-        _ =
-            await _taskRepo.GetByIdAsync(request.TaskItemId, request.OwnerUserId, cancellationToken)
-            ?? throw new NotFoundException("TaskItem", request.TaskItemId);
+        var task = await _taskRepo.GetByIdAsync(request.TaskItemId, cancellationToken);
+
+        if (task is null)
+        {
+            throw new NotFoundException("TaskItem", request.TaskItemId);
+        }
+
+        await _boardAccessService.EnsureCanEditSubtask(
+            subtaskId: Guid.Empty, // ιδανικά EnsureCanEditSubtasksForTask(task.Id,...)
+            userId: request.CurrentUserId,
+            cancellationToken
+        );
+
         var subtask = new Subtask
         {
             Id = Guid.NewGuid(),

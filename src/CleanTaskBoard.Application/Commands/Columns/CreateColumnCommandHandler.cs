@@ -1,5 +1,5 @@
-﻿using CleanTaskBoard.Application.Common.Exceptions;
-using CleanTaskBoard.Application.Interfaces.Repositories;
+﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+using CleanTaskBoard.Application.Interfaces.Services;
 using CleanTaskBoard.Domain.Entities;
 using MediatR;
 
@@ -8,25 +8,25 @@ namespace CleanTaskBoard.Application.Commands.Columns;
 public class CreateColumnCommandHandler : IRequestHandler<CreateColumnCommand, Guid>
 {
     private readonly IColumnRepository _columnRepository;
-    private readonly IBoardRepository _boardRepository;
+    private readonly IBoardAccessService _boardAccessService;
 
     public CreateColumnCommandHandler(
         IColumnRepository columnRepository,
-        IBoardRepository boardRepository
+        IBoardAccessService boardAccessService
     )
     {
         _columnRepository = columnRepository;
-        _boardRepository = boardRepository;
+        _boardAccessService = boardAccessService;
     }
 
     public async Task<Guid> Handle(CreateColumnCommand request, CancellationToken cancellationToken)
     {
-        _ =
-            await _boardRepository.GetByIdAsync(
-                request.BoardId,
-                request.OwnerUserId,
-                cancellationToken
-            ) ?? throw new NotFoundException("Board", request.BoardId);
+        // Μόνο Owner μπορεί να πειράξει columns
+        await _boardAccessService.EnsureCanEditColumn(
+            columnId: request.BoardId, // Εδώ καλύτερα να κάνεις EnsureCanEditBoard ή δικό σου helper
+            userId: request.CurrentUserId,
+            cancellationToken
+        );
 
         var column = new Column
         {

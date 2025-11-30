@@ -1,4 +1,5 @@
 ﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+using CleanTaskBoard.Application.Interfaces.Services;
 using MediatR;
 
 namespace CleanTaskBoard.Application.Commands.Subtasks;
@@ -6,10 +7,15 @@ namespace CleanTaskBoard.Application.Commands.Subtasks;
 public class DeleteSubtaskCommandHandler : IRequestHandler<DeleteSubtaskCommand, bool>
 {
     private readonly ISubtaskRepository _subtaskRepo;
+    private readonly IBoardAccessService _boardAccessService;
 
-    public DeleteSubtaskCommandHandler(ISubtaskRepository subtaskRepo)
+    public DeleteSubtaskCommandHandler(
+        ISubtaskRepository subtaskRepo,
+        IBoardAccessService boardAccessService
+    )
     {
         _subtaskRepo = subtaskRepo;
+        _boardAccessService = boardAccessService;
     }
 
     public async Task<bool> Handle(
@@ -17,11 +23,13 @@ public class DeleteSubtaskCommandHandler : IRequestHandler<DeleteSubtaskCommand,
         CancellationToken cancellationToken
     )
     {
-        var subtask = await _subtaskRepo.GetByIdAsync(
+        await _boardAccessService.EnsureCanEditSubtask(
             request.SubtaskId,
-            request.OwnerUserId,
+            request.CurrentUserId,
             cancellationToken
         );
+
+        var subtask = await _subtaskRepo.GetByIdAsync(request.SubtaskId, cancellationToken);
         if (subtask is null)
             return false;
 

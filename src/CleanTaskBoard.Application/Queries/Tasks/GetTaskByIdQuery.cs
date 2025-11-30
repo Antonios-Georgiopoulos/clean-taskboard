@@ -2,4 +2,4 @@
 
 namespace CleanTaskBoard.Application.Queries.Tasks;
 
-public record GetTaskByIdQuery(Guid Id, Guid OwnerUserId) : IRequest<TaskItem?>;
+public record GetTaskByIdQuery(Guid CurrentUserId, Guid Id) : IRequest<TaskItem?>;

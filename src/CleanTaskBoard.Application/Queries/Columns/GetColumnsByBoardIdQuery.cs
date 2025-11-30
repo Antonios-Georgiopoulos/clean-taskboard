@@ -3,4 +3,4 @@ using MediatR;
 
 namespace CleanTaskBoard.Application.Queries.Columns;
 
-public record GetColumnsByBoardIdQuery(Guid BoardId, Guid OwnerUserId) : IRequest<List<Column>>;
+public record GetColumnsByBoardIdQuery(Guid CurrentUserId, Guid BoardId) : IRequest<List<Column>>;

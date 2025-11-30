@@ -7,111 +7,72 @@
 
 # CleanTaskBoard
 
-A Clean Architecture Kanban backend built with .NET, CQRS, MediatR, EF Core, and PostgreSQL.
+A Clean Architecture Kanban backend built with .NET, CQRS, MediatR, EF Core, PostgreSQL, and JWT-based authentication.
 
 ## Overview
+
 CleanTaskBoard is a production-ready backend inspired by Trello/Jira-style Kanban systems.  
 It demonstrates real enterprise engineering practices:
+
 - Clean Architecture (Domain → Application → Infrastructure → API)
 - CQRS + MediatR
 - PostgreSQL persistence via EF Core
 - Dockerized development environment
 - Full Kanban feature set (Boards, Columns, Tasks, Subtasks)
 - Task movement, reordering, completion logic
-- **JWT-based authentication (Users, Register/Login, secure boards)**
+- **Authentication & Authorization with JWT**
+- **Board membership & role-based access control (Owner / Member / Viewer)**
 
 ---
 
 ## Features
 
 ### ✔ Authentication & Users
-- User registration (`/auth/register`)
-- User login (`/auth/login`)
-- Secure JWT token generation
-- Password hashing (PBKDF2-based)
-- Ready to secure boards/tasks per authenticated user
+
+- Register new user
+- Login with email/password
+- Issue JWT access tokens
+- Password hashing with PBKDF2
+- Secured endpoints via `Authorization: Bearer <token>`
 
 ### ✔ Boards
-- Create board  
-- Get boards  
-- Get board by ID  
+
+- Create board (authenticated)
+- Get boards for current user (owner)
+- Get board by ID (Owner / Member / Viewer)
+- Board membership model (Owner / Member / Viewer)
+
+### ✔ Board Membership
+
+- Add member to board (Owner only)
+- Remove member from board (Owner only)
+- Update member role (Owner only)
+- List board members (Owner only)
+- Roles:
+  - **Owner** → full control, manage membership, manage columns/tasks/subtasks
+  - **Member** → can create/update/delete/move tasks & subtasks
+  - **Viewer** → read-only
 
 ### ✔ Columns
-- Create column  
-- Get columns per board  
-- Delete column  
+
+- Create column (Owner only)
+- Get columns per board (Owner / Member / Viewer)
+- Delete column (Owner only)
 
 ### ✔ Tasks
-- CRUD  
-- Move between columns  
-- Reorder inside a column  
-- Toggle completion  
+
+- CRUD (Owner / Member)
+- Move between columns (Owner / Member)
+- Reorder inside a column (Owner / Member)
+- Toggle completion (Owner / Member)
+- Read-only access for Viewer
 
 ### ✔ Subtasks
-- CRUD  
-- Toggle completion  
-- Reorder  
 
----
-
-## Authentication
-
-### Register
-
-**Endpoint:** `POST /auth/register`  
-
-**Request body:**
-```json
-{
-  "username": "testuser",
-  "email": "test@example.com",
-  "password": "P@ssw0rd!"
-}
-```
-
-**Response:**
-```json
-{
-  "userId": "GUID",
-  "username": "testuser",
-  "email": "test@example.com",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-### Login
-
-**Endpoint:** `POST /auth/login`  
-
-**Request body:**
-```json
-{
-  "email": "test@example.com",
-  "password": "P@ssw0rd!"
-}
-```
-
-**Response:**
-```json
-{
-  "userId": "GUID",
-  "username": "testuser",
-  "email": "test@example.com",
-  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
-}
-```
-
-### Using the JWT token
-
-When accessing protected endpoints (e.g. boards, columns, tasks, subtasks), send the token in the HTTP header:
-
-```http
-Authorization: Bearer {{token}}
-```
-
-In Postman, you can set a collection variable `token` and use `Bearer {{token}}` across requests.
-
-> Note: Currently, authentication is wired and functional. Board ownership and per-user data scoping will be introduced in the next milestone.
+- CRUD (Owner / Member)
+- Toggle completion (Owner / Member)
+- Reorder (Owner / Member)
+- Read-only access for Viewer
 
 ---
 
@@ -119,14 +80,48 @@ In Postman, you can set a collection variable `token` and use `Bearer {{token}}`
 
 ### Clean Architecture Layers
 
-```
-Domain → Enterprise business rules  
-Application → Use-cases (CQRS / MediatR)  
-Infrastructure → EF Core & PostgreSQL, Repositories, Security (PasswordHasher, JwtTokenGenerator)  
-API → Minimal API endpoints, DI wiring, JWT Authentication & Authorization  
+```text
+Domain       → Enterprise business rules
+Application  → Use-cases (CQRS / MediatR, validation, authorization)
+Infrastructure → EF Core & PostgreSQL, repositories, security (JWT, hashing)
+API          → Minimal API endpoints, DI wiring, exception handling
 ```
 
-See `docs/architecture.md` for full diagrams.
+See `docs/architecture.md` and `docs/diagrams` for full diagrams.
+
+### Authentication & Authorization
+
+- **Domain**
+  - `User`
+  - `Board`
+  - `BoardMembership`
+  - `BoardRole (Owner, Member, Viewer)`
+
+- **Application**
+  - Auth use-cases: Register / Login
+  - `IJwtTokenGenerator`, `IPasswordHasher`
+  - `IBoardAccessService` for role-based access:
+    - `EnsureCanReadBoard`, `EnsureCanEditBoard`, `EnsureCanManageMembership`
+    - `EnsureCanRead/CanEditColumn`
+    - `EnsureCanRead/CanEditTask`, `EnsureCanEditTasksForColumn`
+    - `EnsureCanRead/CanEditSubtask`, `EnsureCanEditSubtasksForTask`
+  - Handlers call access service before repositories.
+
+- **Infrastructure**
+  - `UserRepository`, `BoardRepository`, `BoardMembershipRepository`
+  - `JwtTokenGenerator` using `System.IdentityModel.Tokens.Jwt`
+  - `PasswordHasher` using PBKDF2
+  - EF Core `AppDbContext` with all entities
+
+- **API**
+  - Minimal API endpoints for:
+    - `/auth/register`
+    - `/auth/login`
+    - `/boards`, `/boards/{boardId}`
+    - `/boards/{boardId}/members`
+    - `/columns`, `/tasks`, `/subtasks`
+  - JWT authentication with `JwtBearer` middleware
+  - Global exception handling returning problem details JSON
 
 ---
 
@@ -152,25 +147,83 @@ dotnet run --project src/CleanTaskBoard.Api
 
 The API runs on:
 
-```
+```text
 https://localhost:5001
 ```
 
 ---
 
+## Authentication Flow
+
+### 1. Register
+
+`POST /auth/register`
+
+```json
+{
+  "email": "owner@example.com",
+  "password": "StrongPassword123!"
+}
+```
+
+### 2. Login
+
+`POST /auth/login`
+
+```json
+{
+  "email": "owner@example.com",
+  "password": "StrongPassword123!"
+}
+```
+
+Response:
+
+```json
+{
+  "accessToken": "<JWT token>",
+  "expiresIn": 3600
+}
+```
+
+Copy the `accessToken` and use it as:
+
+```http
+Authorization: Bearer <accessToken>
+```
+
+in all subsequent requests.
+
+---
+
+## RBAC Model (Boards)
+
+| Role    | Boards | Columns        | Tasks/Subtasks        | Membership |
+|--------|--------|----------------|------------------------|-----------|
+| Owner  | Full   | Create/Delete  | Full (CRUD + move)     | Full      |
+| Member | Read   | Read           | Create/Update/Delete   | None      |
+| Viewer | Read   | Read           | Read-only              | None      |
+
+Non-members receive `404`/`403` via the access service, without leaking board existence.
+
+---
+
 ## Postman Collection
+
 A full Postman collection is available under `/docs/postman/CleanTaskBoard.postman_collection.json`.
 
-The collection includes:
-- Auth endpoints (`/auth/register`, `/auth/login`)
+It includes:
+
+- Auth folder (Register/Login)
 - Boards / Columns / Tasks / Subtasks
-- Support for a `token` collection variable used in the `Authorization` header.
+- Board Members (membership management)
+- Shared `{{baseUrl}}` and `{{accessToken}}` variables
 
 ---
 
 ## Project Structure
 
-```
+```text
 CleanTaskBoard/
 ├─ src/
 │  ├─ CleanTaskBoard.Api/
@@ -179,10 +232,12 @@ CleanTaskBoard/
 │  └─ CleanTaskBoard.Infrastructure/
 ├─ docs/
 │  ├─ architecture.md
-│  └─ diagrams/
-│     ├─ entities.md
-│     ├─ cqrs-flow.md
-│     └─ layers.md
+│  ├─ diagrams/
+│  │  ├─ entities.md
+│  │  ├─ cqrs-flow.md
+│  │  └─ layers.md
+│  └─ postman/
+│     └─ CleanTaskBoard.postman_collection.json
 ├─ docker-compose.yml
 └─ README.md
 ```
@@ -196,10 +251,12 @@ CleanTaskBoard/
 - PostgreSQL  
 - Docker  
 - MediatR  
+- FluentValidation  
 - Minimal API  
-- JWT Authentication  
+- JWT Authentication (Bearer tokens)
 
 ---
 
 ## License
+
 MIT License.

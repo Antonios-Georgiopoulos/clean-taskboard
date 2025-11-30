@@ -21,59 +21,21 @@ public class SubtaskRepository : ISubtaskRepository
         return subtask.Id;
     }
 
-    public async Task<Subtask?> GetByIdAsync(
-        Guid id,
-        Guid ownerUserId,
-        CancellationToken cancellationToken = default
-    )
+    public async Task<Subtask?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return await _context
             .Subtasks.AsNoTracking()
-            .Where(s => s.Id == id)
-            .Join(_context.TaskItems, s => s.TaskItemId, t => t.Id, (s, t) => new { s, t })
-            .Join(
-                _context.Columns,
-                st => st.t.ColumnId,
-                c => c.Id,
-                (st, c) =>
-                    new
-                    {
-                        st.s,
-                        st.t,
-                        c,
-                    }
-            )
-            .Join(_context.Boards, stc => stc.c.BoardId, b => b.Id, (stc, b) => new { stc.s, b })
-            .Where(s_b => s_b.b.OwnerUserId == ownerUserId)
-            .Select(x => x.s)
-            .FirstOrDefaultAsync(cancellationToken);
+            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
     }
 
     public async Task<List<Subtask>> GetByTaskIdAsync(
         Guid taskItemId,
-        Guid ownerUserId,
         CancellationToken cancellationToken = default
     )
     {
         return await _context
             .Subtasks.AsNoTracking()
             .Where(s => s.TaskItemId == taskItemId)
-            .Join(_context.TaskItems, s => s.TaskItemId, t => t.Id, (s, t) => new { s, t })
-            .Join(
-                _context.Columns,
-                st => st.t.ColumnId,
-                c => c.Id,
-                (st, c) =>
-                    new
-                    {
-                        st.s,
-                        st.t,
-                        c,
-                    }
-            )
-            .Join(_context.Boards, stc => stc.c.BoardId, b => b.Id, (stc, b) => new { stc.s, b })
-            .Where(s_b => s_b.b.OwnerUserId == ownerUserId)
-            .Select(x => x.s)
             .OrderBy(s => s.Order)
             .ToListAsync(cancellationToken);
     }

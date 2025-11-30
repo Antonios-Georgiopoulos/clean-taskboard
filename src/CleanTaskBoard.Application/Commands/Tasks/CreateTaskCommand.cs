@@ -3,7 +3,7 @@
 namespace CleanTaskBoard.Application.Commands.Tasks;
 
 public record CreateTaskCommand(
-    Guid OwnerUserId,
+    Guid CurrentUserId,
     Guid ColumnId,
     string Title,
     string? Description,

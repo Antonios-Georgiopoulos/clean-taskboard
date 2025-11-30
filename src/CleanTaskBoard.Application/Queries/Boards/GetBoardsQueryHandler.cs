@@ -18,6 +18,6 @@ public class GetBoardsQueryHandler : IRequestHandler<GetBoardsQuery, List<Board>
         CancellationToken cancellationToken
     )
     {
-        return await _boardRepository.GetByOwnerAsync(request.OwnerUserId, cancellationToken);
+        return await _boardRepository.GetByOwnerAsync(request.CurrentUserId, cancellationToken);
     }
 }

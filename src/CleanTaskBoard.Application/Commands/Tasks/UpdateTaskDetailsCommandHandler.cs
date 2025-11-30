@@ -1,4 +1,5 @@
 ﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+using CleanTaskBoard.Application.Interfaces.Services;
 using CleanTaskBoard.Domain.Enums;
 using MediatR;
 
@@ -7,10 +8,15 @@ namespace CleanTaskBoard.Application.Commands.Tasks;
 public class UpdateTaskDetailsCommandHandler : IRequestHandler<UpdateTaskDetailsCommand, bool>
 {
     private readonly ITaskItemRepository _taskRepo;
+    private readonly IBoardAccessService _boardAccessService;
 
-    public UpdateTaskDetailsCommandHandler(ITaskItemRepository taskRepo)
+    public UpdateTaskDetailsCommandHandler(
+        ITaskItemRepository taskRepo,
+        IBoardAccessService boardAccessService
+    )
     {
         _taskRepo = taskRepo;
+        _boardAccessService = boardAccessService;
     }
 
     public async Task<bool> Handle(
@@ -18,7 +24,13 @@ public class UpdateTaskDetailsCommandHandler : IRequestHandler<UpdateTaskDetails
         CancellationToken cancellationToken
     )
     {
-        var task = await _taskRepo.GetByIdAsync(request.Id, request.OwnerUserId, cancellationToken);
+        await _boardAccessService.EnsureCanEditTask(
+            request.Id,
+            request.CurrentUserId,
+            cancellationToken
+        );
+
+        var task = await _taskRepo.GetByIdAsync(request.Id, cancellationToken);
         if (task is null)
             return false;
 

@@ -2,4 +2,4 @@
 
 namespace CleanTaskBoard.Application.Commands.Tasks;
 
-public record CompleteTaskCommand(Guid TaskId, Guid OwnerUserId) : IRequest<bool>;
+public record CompleteTaskCommand(Guid CurrentUserId, Guid TaskId) : IRequest<bool>;

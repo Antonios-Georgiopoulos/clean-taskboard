@@ -2,5 +2,5 @@
 
 namespace CleanTaskBoard.Application.Commands.Subtasks;
 
-public record CreateSubtaskCommand(Guid OwnerUserId, Guid TaskItemId, string Title, int Order)
+public record CreateSubtaskCommand(Guid CurrentUserId, Guid TaskItemId, string Title, int Order)
     : IRequest<Guid>;
