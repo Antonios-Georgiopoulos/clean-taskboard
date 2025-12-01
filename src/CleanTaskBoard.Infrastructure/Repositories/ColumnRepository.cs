@@ -1,5 +1,5 @@
 ﻿using CleanTaskBoard.Application.Interfaces.Repositories;
-using CleanTaskBoard.Domain.Entities;
+using CleanTaskBoard.Domain.Entities.Column;
 using CleanTaskBoard.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 

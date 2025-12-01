@@ -7,11 +7,13 @@ using CleanTaskBoard.Api.Requests.Boards;
 using CleanTaskBoard.Api.Requests.Column;
 using CleanTaskBoard.Api.Requests.Subtask;
 using CleanTaskBoard.Api.Requests.Task;
+using CleanTaskBoard.Api.Responses;
 using CleanTaskBoard.Api.Responses.Boards;
 using CleanTaskBoard.Api.Responses.Column;
 using CleanTaskBoard.Api.Responses.Subtask;
 using CleanTaskBoard.Api.Responses.Task;
 using CleanTaskBoard.Application;
+using CleanTaskBoard.Application.Auth.Queries;
 using CleanTaskBoard.Application.Commands.Auth;
 using CleanTaskBoard.Application.Commands.Boards;
 using CleanTaskBoard.Application.Commands.Columns;
@@ -493,9 +495,11 @@ app.MapDelete(
     .WithName("DeleteSubtask");
 
 // AUTH
+var authGroup = app.MapGroup("/auth");
 
-app.MapPost(
-        "/auth/register",
+authGroup
+    .MapPost(
+        "/register",
         async (RegisterRequest request, IMediator mediator) =>
         {
             var result = await mediator.Send(
@@ -509,8 +513,9 @@ app.MapPost(
     )
     .WithName("Register");
 
-app.MapPost(
-        "/auth/login",
+authGroup
+    .MapPost(
+        "/login",
         async (LoginRequest request, IMediator mediator) =>
         {
             var result = await mediator.Send(new LoginCommand(request.Email, request.Password));
@@ -522,6 +527,32 @@ app.MapPost(
     )
     .WithName("Login");
 
+authGroup
+    .MapGet(
+        "/me",
+        async (ClaimsPrincipal user, IMediator mediator) =>
+        {
+            var currentUserId = GetCurrentUserId(user);
+
+            var currentUser = await mediator.Send(new GetCurrentUserQuery(currentUserId));
+
+            if (currentUser is null)
+            {
+                return Results.NotFound();
+            }
+
+            var response = new MeResponse(
+                currentUser.Id,
+                currentUser.Email,
+                currentUser.CreatedAtUtc
+            );
+
+            return Results.Ok(response);
+        }
+    )
+    .RequireAuthorization()
+    .WithName("GetCurrentUser");
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -532,5 +563,17 @@ app.UseHttpsRedirection();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+static Guid GetCurrentUserId(ClaimsPrincipal user)
+{
+    var idClaim = user.FindFirst(ClaimTypes.NameIdentifier) ?? user.FindFirst("sub");
+
+    if (idClaim is null || !Guid.TryParse(idClaim.Value, out var id))
+    {
+        throw new InvalidOperationException("Invalid or missing user id in JWT token.");
+    }
+
+    return id;
+}
 
 app.Run();

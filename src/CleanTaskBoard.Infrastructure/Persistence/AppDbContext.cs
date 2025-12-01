@@ -1,5 +1,6 @@
 using CleanTaskBoard.Domain.Entities;
 using CleanTaskBoard.Domain.Entities.Boards;
+using CleanTaskBoard.Domain.Entities.Column;
 using CleanTaskBoard.Domain.Entities.Users;
 using Microsoft.EntityFrameworkCore;
 

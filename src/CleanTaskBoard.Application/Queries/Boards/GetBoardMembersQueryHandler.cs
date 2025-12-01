@@ -69,7 +69,7 @@ public class GetBoardMembersQueryHandler
             select new BoardMemberDto(m.UserId, u.Email, m.Role.ToString())
         ).ToList();
 
-        // Owner ως "virtual member" (αν δεν είναι ήδη στο table)
+        // Owner as "virtual member (if not exists in table)
         var ownerUser = await _userRepository.GetByIdAsync(board.OwnerUserId, cancellationToken);
 
         if (ownerUser is not null && !result.Any(r => r.UserId == board.OwnerUserId))

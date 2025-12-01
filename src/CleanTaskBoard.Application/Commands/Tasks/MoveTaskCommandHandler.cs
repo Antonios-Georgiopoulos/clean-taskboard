@@ -21,7 +21,6 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, bool>
 
     public async Task<bool> Handle(MoveTaskCommand request, CancellationToken cancellationToken)
     {
-        // 1) Permission checks
         await _boardAccessService.EnsureCanEditTask(
             request.TaskId,
             request.CurrentUserId,
@@ -34,14 +33,12 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, bool>
             cancellationToken
         );
 
-        // 2) Βρίσκουμε το task
         var task = await _taskRepo.GetByIdAsync(request.TaskId, cancellationToken);
         if (task is null)
             throw new NotFoundException("TaskItem", request.TaskId);
 
         var sourceColumnId = task.ColumnId;
 
-        // 3) Αν μένει στην ίδια column, είναι απλό reorder
         if (sourceColumnId == request.TargetColumnId)
         {
             var tasksInColumn = await _taskRepo.GetByColumnIdAsync(
@@ -74,7 +71,6 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, bool>
             return true;
         }
 
-        // 4) Αλλαγή column: καθαρίζουμε source column
         var sourceTasks = await _taskRepo.GetByColumnIdAsync(sourceColumnId, cancellationToken);
 
         sourceTasks = sourceTasks.OrderBy(t => t.Order).ToList();
@@ -91,7 +87,6 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, bool>
             await _taskRepo.UpdateAsync(sourceTasks[i], cancellationToken);
         }
 
-        // 5) Εισαγωγή στη target column
         var targetTasks = await _taskRepo.GetByColumnIdAsync(
             request.TargetColumnId,
             cancellationToken
@@ -105,7 +100,6 @@ public class MoveTaskCommandHandler : IRequestHandler<MoveTaskCommand, bool>
         if (targetPos > targetTasks.Count)
             targetPos = targetTasks.Count;
 
-        // ενημερώνουμε το task
         task.ColumnId = request.TargetColumnId;
 
         targetTasks.Insert(targetPos, task);

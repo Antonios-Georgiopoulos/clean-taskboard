@@ -1,6 +1,7 @@
 ﻿using CleanTaskBoard.Application.Interfaces.Repositories;
 using CleanTaskBoard.Application.Interfaces.Services;
 using CleanTaskBoard.Domain.Entities;
+using CleanTaskBoard.Domain.Entities.Column;
 using MediatR;
 
 namespace CleanTaskBoard.Application.Commands.Columns;

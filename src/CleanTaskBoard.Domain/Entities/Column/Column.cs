@@ -1,4 +1,4 @@
-namespace CleanTaskBoard.Domain.Entities;
+namespace CleanTaskBoard.Domain.Entities.Column;
 
 public class Column
 {
