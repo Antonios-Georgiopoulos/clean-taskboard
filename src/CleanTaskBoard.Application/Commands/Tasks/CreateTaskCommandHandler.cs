@@ -1,4 +1,5 @@
-﻿using CleanTaskBoard.Application.Interfaces.Repositories;
+﻿using CleanTaskBoard.Application.Common.Exceptions;
+using CleanTaskBoard.Application.Interfaces.Repositories;
 using CleanTaskBoard.Application.Interfaces.Services;
 using CleanTaskBoard.Domain.Enums;
 using MediatR;
@@ -28,15 +29,10 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, Guid>
 
         if (column is null)
         {
-            throw new CleanTaskBoard.Application.Common.Exceptions.NotFoundException(
-                "Column",
-                request.ColumnId
-            );
+            throw new NotFoundException("Column", request.ColumnId);
         }
 
-        // The user must be able to edit the column,
-        // so they can create tasks within it.
-        await _boardAccessService.EnsureCanEditColumn(
+        await _boardAccessService.EnsureCanEditTasksForColumn(
             column.Id,
             request.CurrentUserId,
             cancellationToken

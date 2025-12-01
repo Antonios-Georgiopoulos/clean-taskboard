@@ -161,6 +161,7 @@ https://localhost:5001
 
 ```json
 {
+  "username": "owner",
   "email": "owner@example.com",
   "password": "StrongPassword123!"
 }
@@ -175,6 +176,9 @@ https://localhost:5001
   "email": "owner@example.com",
   "password": "StrongPassword123!"
 }
+
+Copy the token from the response and use it as:
+Authorization: Bearer <token>
 ```
 
 Response:

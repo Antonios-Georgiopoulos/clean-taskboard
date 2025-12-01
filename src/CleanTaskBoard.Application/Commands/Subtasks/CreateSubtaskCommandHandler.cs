@@ -35,8 +35,7 @@ public class CreateSubtaskCommandHandler : IRequestHandler<CreateSubtaskCommand,
             throw new NotFoundException("TaskItem", request.TaskItemId);
         }
 
-        // To create a subtask, you must be able to edit the task.
-        await _boardAccessService.EnsureCanEditTask(
+        await _boardAccessService.EnsureCanEditSubtasksForTask(
             task.Id,
             request.CurrentUserId,
             cancellationToken

@@ -56,6 +56,29 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // Subtask
+        modelBuilder.Entity<Subtask>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.Title).IsRequired();
+
+            entity
+                .HasOne<TaskItem>()
+                .WithMany()
+                .HasForeignKey(s => s.TaskItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // User
+        modelBuilder.Entity<User>(entity =>
+        {
+            entity.HasKey(u => u.Id);
+
+            entity.Property(u => u.Username).IsRequired().HasMaxLength(100);
+
+            entity.Property(u => u.Email).IsRequired().HasMaxLength(256);
+        });
+
         // BoardMembership
         modelBuilder.Entity<BoardMembership>(entity =>
         {
@@ -63,14 +86,16 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(m => new { m.BoardId, m.UserId }).IsUnique();
 
+            entity.Property(m => m.Role).IsRequired();
+
             entity
-                .HasOne<Board>()
+                .HasOne(m => m.Board)
                 .WithMany()
                 .HasForeignKey(m => m.BoardId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             entity
-                .HasOne<User>()
+                .HasOne(m => m.User)
                 .WithMany()
                 .HasForeignKey(m => m.UserId)
                 .OnDelete(DeleteBehavior.Cascade);

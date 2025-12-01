@@ -78,7 +78,7 @@ public class BoardAccessService : IBoardAccessService
         CancellationToken cancellationToken
     )
     {
-        var (board, role) = await GetBoardAndRoleByColumn(columnId, userId, cancellationToken);
+        var (_, role) = await GetBoardAndRoleByColumn(columnId, userId, cancellationToken);
 
         if (role is BoardRole.Owner or BoardRole.Member or BoardRole.Viewer)
             return;
@@ -106,12 +106,8 @@ public class BoardAccessService : IBoardAccessService
         CancellationToken cancellationToken
     )
     {
-        var (board, role) = await GetBoardAndRole(boardId, userId, cancellationToken);
-
-        if (board.OwnerUserId == userId && role == BoardRole.Owner)
-            return;
-
-        throw new ForbiddenAccessException("Only board owner can modify columns.");
+        // Owner-only, ίδια λογική με EnsureCanEditBoard
+        await EnsureCanEditBoard(boardId, userId, cancellationToken);
     }
 
     // ---------------- Task-level ----------------
