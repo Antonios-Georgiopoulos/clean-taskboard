@@ -36,8 +36,12 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
             throw new InvalidOperationException("Email is already in use.");
         }
 
+        var effectiveUsername = string.IsNullOrWhiteSpace(request.Username)
+            ? request.Email
+            : request.Username;
+
         var existingByUsername = await _userRepository.GetByUsernameAsync(
-            request.Username,
+            effectiveUsername,
             cancellationToken
         );
         if (existingByUsername is not null)
@@ -47,7 +51,7 @@ public class RegisterUserCommandHandler : IRequestHandler<RegisterUserCommand, A
 
         var (hash, salt) = _passwordHasher.HashPassword(request.Password);
 
-        var user = User.Create(request.Username, request.Email, hash, salt);
+        var user = User.Create(effectiveUsername, request.Email, hash, salt);
         await _userRepository.AddAsync(user, cancellationToken);
 
         var token = _jwtTokenGenerator.GenerateToken(user.Id, user.Username, user.Email);

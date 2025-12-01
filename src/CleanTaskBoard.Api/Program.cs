@@ -95,7 +95,7 @@ app.MapGet(
         {
             var userId = user.GetUserId();
 
-            var board = await mediator.Send(new GetBoardByIdQuery(id, userId));
+            var board = await mediator.Send(new GetBoardByIdQuery(userId, id));
 
             return board is null ? Results.NotFound() : Results.Ok(board);
         }
@@ -225,7 +225,7 @@ app.MapGet(
         {
             var userId = user.GetUserId();
 
-            var columns = await mediator.Send(new GetColumnsByBoardIdQuery(boardId, userId));
+            var columns = await mediator.Send(new GetColumnsByBoardIdQuery(userId, boardId));
             return Results.Ok(columns);
         }
     )
@@ -238,7 +238,7 @@ app.MapGet(
         {
             var userId = user.GetUserId();
 
-            var column = await mediator.Send(new GetColumnByIdQuery(id, userId));
+            var column = await mediator.Send(new GetColumnByIdQuery(userId, id));
 
             return column is null ? Results.NotFound() : Results.Ok(column);
         }
@@ -252,7 +252,7 @@ app.MapDelete(
         {
             var userId = user.GetUserId();
 
-            var result = await mediator.Send(new DeleteColumnCommand(id, userId));
+            var result = await mediator.Send(new DeleteColumnCommand(userId, id));
 
             return result ? Results.NoContent() : Results.NotFound();
         }
@@ -296,7 +296,7 @@ app.MapGet(
         {
             var userId = user.GetUserId();
 
-            var tasks = await mediator.Send(new GetTasksByColumnIdQuery(columnId, userId));
+            var tasks = await mediator.Send(new GetTasksByColumnIdQuery(userId, columnId));
             return Results.Ok(tasks);
         }
     )
@@ -309,7 +309,7 @@ app.MapGet(
         {
             var userId = user.GetUserId();
 
-            var task = await mediator.Send(new GetTaskByIdQuery(id, userId));
+            var task = await mediator.Send(new GetTaskByIdQuery(userId, id));
 
             return task is null ? Results.NotFound() : Results.Ok(task);
         }
@@ -324,8 +324,8 @@ app.MapPut(
             var userId = user.GetUserId();
 
             var command = new UpdateTaskDetailsCommand(
-                id,
                 userId,
+                id,
                 request.Title,
                 request.Description,
                 request.DueDate,
@@ -346,7 +346,7 @@ app.MapDelete(
         {
             var userId = user.GetUserId();
 
-            var success = await mediator.Send(new DeleteTaskCommand(id, userId));
+            var success = await mediator.Send(new DeleteTaskCommand(userId, id));
 
             return success ? Results.NoContent() : Results.NotFound();
         }
@@ -361,7 +361,7 @@ app.MapPatch(
             var userId = user.GetUserId();
 
             var result = await mediator.Send(
-                new MoveTaskCommand(id, userId, request.TargetColumnId, request.TargetPosition)
+                new MoveTaskCommand(userId, id, request.TargetColumnId, request.TargetPosition)
             );
 
             return result ? Results.NoContent() : Results.NotFound();
@@ -376,7 +376,7 @@ app.MapPatch(
         {
             var userId = user.GetUserId();
 
-            var result = await mediator.Send(new CompleteTaskCommand(id, userId));
+            var result = await mediator.Send(new CompleteTaskCommand(userId, id));
 
             return result ? Results.NoContent() : Results.NotFound();
         }
@@ -391,7 +391,7 @@ app.MapPatch(
             var userId = user.GetUserId();
 
             var result = await mediator.Send(
-                new ReorderTaskCommand(id, userId, request.TargetPosition)
+                new ReorderTaskCommand(userId, id, request.TargetPosition)
             );
 
             return result ? Results.NoContent() : Results.NotFound();
@@ -429,7 +429,7 @@ app.MapGet(
         {
             var userId = user.GetUserId();
 
-            var subtasks = await mediator.Send(new GetSubtasksByTaskIdQuery(taskId, userId));
+            var subtasks = await mediator.Send(new GetSubtasksByTaskIdQuery(userId, taskId));
             return Results.Ok(subtasks);
         }
     )
@@ -442,7 +442,7 @@ app.MapGet(
         {
             var userId = user.GetUserId();
 
-            var subtask = await mediator.Send(new GetSubtaskByIdQuery(id, userId));
+            var subtask = await mediator.Send(new GetSubtaskByIdQuery(userId, id));
 
             return subtask is null ? Results.NotFound() : Results.Ok(subtask);
         }
@@ -456,7 +456,7 @@ app.MapPatch(
         {
             var userId = user.GetUserId();
 
-            var result = await mediator.Send(new CompleteSubtaskCommand(id, userId));
+            var result = await mediator.Send(new CompleteSubtaskCommand(userId, id));
 
             return result ? Results.NoContent() : Results.NotFound();
         }
@@ -471,7 +471,7 @@ app.MapPatch(
             var userId = user.GetUserId();
 
             var result = await mediator.Send(
-                new ReorderSubtaskCommand(id, userId, request.TargetPosition)
+                new ReorderSubtaskCommand(userId, id, request.TargetPosition)
             );
 
             return result ? Results.NoContent() : Results.NotFound();
@@ -486,7 +486,7 @@ app.MapDelete(
         {
             var userId = user.GetUserId();
 
-            var result = await mediator.Send(new DeleteSubtaskCommand(id, userId));
+            var result = await mediator.Send(new DeleteSubtaskCommand(userId, id));
 
             return result ? Results.NoContent() : Results.NotFound();
         }
