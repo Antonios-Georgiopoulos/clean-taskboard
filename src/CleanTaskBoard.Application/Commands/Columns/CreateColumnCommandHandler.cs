@@ -1,6 +1,5 @@
 ﻿using CleanTaskBoard.Application.Interfaces.Repositories;
 using CleanTaskBoard.Application.Interfaces.Services;
-using CleanTaskBoard.Domain.Entities;
 using CleanTaskBoard.Domain.Entities.Column;
 using MediatR;
 
@@ -22,10 +21,10 @@ public class CreateColumnCommandHandler : IRequestHandler<CreateColumnCommand, G
 
     public async Task<Guid> Handle(CreateColumnCommand request, CancellationToken cancellationToken)
     {
-        // Μόνο Owner μπορεί να πειράξει columns
-        await _boardAccessService.EnsureCanEditColumn(
-            columnId: request.BoardId, // Εδώ καλύτερα να κάνεις EnsureCanEditBoard ή δικό σου helper
-            userId: request.CurrentUserId,
+        // Here you need rights on the BOARD (only the Owner can create columns).
+        await _boardAccessService.EnsureCanEditBoard(
+            request.BoardId,
+            request.CurrentUserId,
             cancellationToken
         );
 

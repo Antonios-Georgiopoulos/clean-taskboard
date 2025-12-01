@@ -24,21 +24,21 @@ public class CreateTaskCommandHandler : IRequestHandler<CreateTaskCommand, Guid>
 
     public async Task<Guid> Handle(CreateTaskCommand request, CancellationToken cancellationToken)
     {
-        // Βρίσκουμε την column για να μάθουμε το boardId
         var column = await _columnRepo.GetByIdAsync(request.ColumnId, cancellationToken);
 
         if (column is null)
         {
-            // Global middleware -> 404
             throw new CleanTaskBoard.Application.Common.Exceptions.NotFoundException(
                 "Column",
                 request.ColumnId
             );
         }
 
-        await _boardAccessService.EnsureCanEditTask(
-            taskId: Guid.Empty, // εδώ θα ήταν καλύτερα ένα EnsureCanEditTasksForColumn(column.Id,...)
-            userId: request.CurrentUserId,
+        // The user must be able to edit the column,
+        // so they can create tasks within it.
+        await _boardAccessService.EnsureCanEditColumn(
+            column.Id,
+            request.CurrentUserId,
             cancellationToken
         );
 
