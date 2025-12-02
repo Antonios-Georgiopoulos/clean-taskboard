@@ -25,6 +25,23 @@ It demonstrates real enterprise engineering practices:
 
 ---
 
+## Why this project is in my portfolio
+
+This project is my go-to showcase for how I approach real-world backend engineering:
+
+- I wanted something more realistic than a simple CRUD API, so I modeled a full Kanban system similar to Trello/Jira.
+- I use Clean Architecture to keep domain logic, application logic, infrastructure, and API clearly separated.
+- CQRS + MediatR help me structure use-cases explicitly (commands/queries), which makes the codebase easier to evolve.
+- JWT-based authentication and role-based access control (Owner / Member / Viewer) simulate real production requirements.
+- Docker and PostgreSQL make the local dev environment reproducible and close to how I would run it in production.
+
+My main goals with this project are:
+
+- To demonstrate how I think about domain modeling (boards, memberships, roles, tasks, subtasks).
+- To show that I care about maintainability, testability, and clear boundaries between layers.
+- To have a solid base for future experiments (more tests, CI/CD pipelines, metrics, and observability).
+
+---
 ## Features
 
 ### ✔ Authentication & Users
