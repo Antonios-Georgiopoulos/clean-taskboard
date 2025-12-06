@@ -1,6 +1,4 @@
-﻿version: '3.8'
-
-services:
+﻿services:
   postgres:
     image: postgres:16
     container_name: clean_taskboard_db
@@ -10,9 +8,22 @@ services:
       POSTGRES_PASSWORD: taskpassword
       POSTGRES_DB: cleantaskboard
     ports:
-      - "5433:5432"   # host 5433 -> container 5432 (για να μην τρακάρει με το Windows PG)
+      - "5433:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+
+  api:
+    build:
+      context: .
+      dockerfile: src/CleanTaskBoard.Api/Dockerfile
+    container_name: clean_taskboard_api
+    depends_on:
+      - postgres
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ConnectionStrings__DefaultConnection: "Host=postgres;Port=5432;Database=cleantaskboard;Username=taskuser;Password=taskpassword"
+    ports:
+      - "5000:8080"
 
 volumes:
   db_data:
